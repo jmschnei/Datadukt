@@ -2,6 +2,11 @@ package de.dfki.cwm.exceptions;
 
 public class WorkflowException extends Exception {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	public WorkflowException() {
 		super();
 	}
