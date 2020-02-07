@@ -24,7 +24,8 @@ public enum Format {
 	TEXT, 
 	JSON, 
 	RDFXML, 
-	URI;
+	URI,
+	UNK;
 	
 	public static final String[] turtle = {"turtle","TURTLE","TTL","ttl","text/turtle"};
 	public static final List<String> turtle2 = Arrays.asList(turtle);
