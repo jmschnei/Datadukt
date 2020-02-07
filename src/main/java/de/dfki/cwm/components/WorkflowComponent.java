@@ -1,7 +1,6 @@
 package de.dfki.cwm.components;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.persistence.Entity;
@@ -10,9 +9,6 @@ import javax.persistence.Id;
 
 import org.json.JSONObject;
 
-import com.rabbitmq.client.DeliverCallback;
-
-import de.dfki.cwm.communication.rabbitmq.RabbitMQManager;
 import de.dfki.cwm.exceptions.WorkflowException;
 import de.dfki.cwm.persistence.DataManager;
 import de.dfki.cwm.persistence.tasks.Task;
