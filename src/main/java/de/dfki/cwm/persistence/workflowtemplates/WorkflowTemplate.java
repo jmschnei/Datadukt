@@ -23,10 +23,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 import de.dfki.cwm.communication.rabbitmq.RabbitMQManager;
 import de.dfki.cwm.components.WorkflowComponent;
+import de.dfki.cwm.exceptions.WorkflowException;
 import de.dfki.cwm.persistence.tasks.Task;
 import de.dfki.cwm.persistence.tasks.TaskManager;
 import de.dfki.cwm.persistence.tasks.TaskRepository;
-import de.dfki.eservices.exceptions.WorkflowException;
 import lombok.Getter;
 import lombok.Setter;
 
