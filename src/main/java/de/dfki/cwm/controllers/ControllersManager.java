@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import de.dfki.cwm.communication.rabbitmq.RabbitMQManager;
-import de.dfki.eservices.exceptions.WorkflowException;
+import de.dfki.cwm.exceptions.WorkflowException;
 
 @Component
 public class ControllersManager {

@@ -17,7 +17,7 @@ import com.mashape.unirest.request.HttpRequest;
 import com.mashape.unirest.request.HttpRequestWithBody;
 
 import de.dfki.cwm.data.QuratorDocument;
-import de.dfki.eservices.exceptions.WorkflowException;
+import de.dfki.cwm.exceptions.WorkflowException;
 
 @Entity
 public class ControllerConnection {
