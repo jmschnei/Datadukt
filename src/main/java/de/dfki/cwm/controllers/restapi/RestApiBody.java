@@ -1,26 +1,18 @@
-package de.dfki.cwm.controllers;
+package de.dfki.cwm.controllers.restapi;
 
-public class ConnectionAuthorization {
+public class RestApiBody {
 
 	String name;
 	String type;
 	String defaultValue;
 	boolean required;
 	
-	String user;
-	String password;
-	
-	public ConnectionAuthorization(String name, String type, String defaultValue, boolean required) {
+	public RestApiBody(String name, String type, String defaultValue, boolean required) {
 		super();
 		this.name = name;
 		this.type = type;
 		this.defaultValue = defaultValue;
 		this.required = required;
-		
-		if(name.equalsIgnoreCase("basicauth")) {
-			user = defaultValue.substring(0, defaultValue.indexOf(':'));
-			password = defaultValue.substring(defaultValue.indexOf(':')+1);
-		}
 	}
 
 	public String getName() {

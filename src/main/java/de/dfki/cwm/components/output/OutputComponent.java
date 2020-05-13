@@ -41,20 +41,20 @@ public abstract class OutputComponent extends WorkflowComponent{
 	 */
 	public static OutputComponent defineOutput(Format outputFormat) throws Exception {
 		switch(outputFormat) {
-		case TEXT:
-			return new ConversionOutputComponent(outputFormat);
+//		case TEXT:
+//			return new ConversionOutputComponent(outputFormat);
 		case RDF:
 			return new ConversionOutputComponent(outputFormat);
 		case TURTLE:
 			return new ConversionOutputComponent(outputFormat);
 		case JSONLD:
 			return new ConversionOutputComponent(outputFormat);
-		case RDFXML:
-			return new XMLOutputComponent();
+//		case RDFXML:
+//			return new XMLOutputComponent();
 		case URI:
 			return new URIOutputComponent();
-		case JSON:
-			return new ConversionOutputComponent(outputFormat);
+//		case JSON:
+//			return new ConversionOutputComponent(outputFormat);
 		default:
 			throw new Exception("OutputFormat not supported. Value must be: TEXT, RDF, JSONLD, XML.");
 		}

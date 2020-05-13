@@ -18,14 +18,15 @@ import com.rabbitmq.client.ConsumerShutdownSignalCallback;
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.MessageProperties;
 
-import de.dfki.cwm.communication.messages.RabbitMQMessage;
+import de.dfki.cwm.communication.CommunicationManager;
+import de.dfki.cwm.communication.CommunicationMessage;
 import de.dfki.cwm.controllers.Controller;
 import de.dfki.cwm.controllers.ControllerRepository;
 import de.dfki.cwm.exceptions.WorkflowException;
 import de.dfki.cwm.persistence.Workflow;
 
 @Component
-public class RabbitMQManager {
+public class RabbitMQManager implements CommunicationManager{
 
 	Logger logger = Logger.getLogger(RabbitMQManager.class);
 
@@ -61,7 +62,7 @@ public class RabbitMQManager {
 		//startRabbitMQManager();
 	}
 
-	public void startRabbitMQManager() throws Exception {
+	public void startManager() throws Exception {
 		try {
 			logger.info("Starting setup of RabbitMQManager ... ");
 			ConnectionFactory factory = new ConnectionFactory();
@@ -70,7 +71,7 @@ public class RabbitMQManager {
 			factory.setVirtualHost(virtualHost);
 			factory.setHost(hostName);
 			factory.setPort(portNumber);
-			System.out.println("RABBITMQ feautres: " + hostName+" "+portNumber+" "+virtualHost);
+			System.out.println("RABBITMQ features: " + hostName+" "+portNumber+" "+virtualHost);
 			rabbitMQConnection = factory.newConnection();
 			rabbitMQChannel = rabbitMQConnection.createChannel();
 			rabbitMQChannel.basicQos(1);
@@ -86,7 +87,7 @@ public class RabbitMQManager {
 		}
 	}
 	
-	public void startRabbitMQManager(Properties properties) throws Exception {
+	public void startManager(Properties properties) throws Exception {
 		logger.info("Starting setup of RabbitMQManager ... ");
 		ConnectionFactory factory = new ConnectionFactory();
 		
@@ -113,14 +114,18 @@ public class RabbitMQManager {
 		logger.info(" ... RabbitMQManager setup DONE.");
 	}
 	
-	public void stopRabbitMQManager() throws Exception {
+	@Override
+	public void stopManager() throws Exception {
 		logger.info("Stopping setup of RabbitMQManager ... ");
+		
+		// TODO Delete all the controlers.
+		
 		rabbitMQChannelPublishing.close();
 		rabbitMQChannelConsuming.close();
 		rabbitMQChannel.close();
 		rabbitMQConnection.close();
 		logger.info(" ... RabbitMQManager stop DONE.");
-	}
+	}	
 	
 	public void initializeWorkflows(List<Workflow> listWorkflows) throws Exception{
 		logger.info("Initializing Workflows in RabbitMQManager ... ");
@@ -334,6 +339,17 @@ public class RabbitMQManager {
 		}
 	}
 
+	@Override
+	public boolean sendMessage(CommunicationMessage message, String serviceControllerId, boolean priority, boolean input) throws Exception {
+		if(message instanceof RabbitMQMessage) {
+			return sendMessage((RabbitMQMessage)message, serviceControllerId, priority, input);
+		}
+		else {
+			logger.error("Only RabbitMQMessage objects are allowed in RabbitMQManager.");
+			throw new Exception("Unsupported Message format/type.");
+		}
+	}
+	
 	//	public boolean sendMessage(RabbitMQMessage message, String queueName, String exchangeName, String routingKey) throws Exception {
 	//		try {
 	////			if(queues.containsKey(queueName)) {
@@ -489,4 +505,5 @@ public class RabbitMQManager {
 		
 
 	}
+
 }

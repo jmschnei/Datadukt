@@ -4,14 +4,14 @@ The Workflow Manager orchestrates the different services of the Lynx platform. I
 
 * **Tasks** Unitary pieces of work. One can think of them as specific methods of a service. They are atomic, in the sense that they don't require each other.
 * **Workflow Templates** Directed Acyclig Graphs (DAG) whose nodes are tasks and whose edges indicate the sequence of execution. They are abstract just as tasks, their instantiations we call Jobs. The output of a task execution is fed as input into the next (according to the DAG) task execution.
-* **Workflow Executions/Job**  Instance of Pipeline, with a particular (possibly empty) input for each task comprising it.
-* **Controllers** A thin process that specifies how to connect computing infraestructure to the workflow manager. One such processor must be created for each outside service, regardless of how many tasks can be executed during it. This connector is used to ensure that resources for a given service are not overused by different tasks.
+* **Workflow Executions**  Instance of Pipeline, with a particular (possibly empty) input for each task comprising it.
+* **Controllers** A thin process that specifies how to connect computing infraestructure to the workflow manager. One such processor must be created for each outside service, regardless of how many tasks can be executed within it. This connector is used to ensure that resources for a given service are not overused by different tasks.
 
 In general, a workflow execution is a DAG of task runs. An instance of a workflow template is a workflow execution, which consists of a series of sequential task executions on a given input. Each task execution sends a request to the corresponding controller. The controllers knows how many tasks can be simultaneously executed by a given service, and sends the executions accordingly. When an execution returns, the controller notifies the corresponding task executions, that must not be the same that contacted it.
 
 ## Workflow Templates
 
-`https://<<lynx-server>>/workflowmanager/templates`
+`https://<<qurator-server>>/cwm/templates`
 
 ### GET
 
@@ -40,7 +40,7 @@ This API deletes an existing Workflow Template.
 
 ## Workflow Executions
 
-`https://<<lynx-server>>/workflowmanager/workflowexecutions`
+`https://<<qurator-server>>/cwm/workflowexecutions`
 
 ### GET
 
@@ -72,20 +72,36 @@ This API deletes an existing Workflow Execution.
 * Output: HTTP 200
 
 
-`https://<<lynx-server>>/workflowmanager/workflowexecutions/execute`
+`https://<<qurator-server>>/cwm/workflowexecutions/execute`
 
-### GET
+### POST
 
-This endpoint executes a concrete workflow execution in an asynchronous was.
+This endpoint executes a concrete workflow execution in an asynchronous way.
 
 * Input:
   * workflowExecutionId: identifier of the workflow execution to be executed.
+  * synchronous: boolean value specifying if the workflow has to be executed synchronously (true) or asynchronously (false).
+* Request Body: 
+  * The document to be processed.
 * Output: HTTP 202
+
+
+`https://<<qurator-server>>/cwm/workflowexecutions/getOutput`
+
+### GET
+
+This endpoint returns the result of a WorkflowExecution that was executed in an asynchronous way.
+
+* Input:
+  * workflowExecutionId: identifier of the workflow execution to be executed.
+  * keepWaiting: if the workflow has not finished the execution, this value determines if the request has to return inmediately (keepWaiting='false') mentioning that the workflow is still running or wait until the workflow finishes and return the result (keepWaiting='true').
+* Output: 
+  * A JSON containing the status of the workflow ('RUNNING' or 'FINISHED') and in case of finished the result of the execution.
 
 
 ## Tasks
 
-`https://<<lynx-server>>/workflowmanager/tasks`
+`https://<<qurator-server>>/cwm/tasks`
 
 ### GET
 
@@ -120,7 +136,7 @@ The WorkflowManager preloads all the controllers that are located (JSON file) in
 
 ### Endpoint
 
-`https://<<lynx-server>>/workflowmanager/controllers`
+`https://<<qurator-server>>/cwm/controllers`
 
 ### GET
 
@@ -157,4 +173,4 @@ This section enumerates the list of things that are not yet implemented.
 * Include Asynchronous calls to the services from the Controllers.
 * Allow the duplication of Controllers or allow the controllers to manage more than one call simultaneously.
 * Implement the storage of annotation/enrichment results in case they have to be persisted in the LKG (that could be implemented in the commons.NifManagement instead of here).
-* 
+* Include validation of JSON definition of components: Task, Controller, Template and WorkflowExecution

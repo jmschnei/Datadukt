@@ -17,6 +17,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import de.dfki.cwm.engine.CWMEngine;
 
+/**
+ * @author julianmorenoschneider
+ * @project CurationWorkflowManager
+ * @date 17.04.2020
+ * @date_modified 
+ * @company DFKI
+ * @description Controller defining endpoints for the management of Task elements.
+ *
+ */
 @RestController
 @RequestMapping("/cwm/tasks")
 public class TasksWebcontroller{
@@ -26,6 +35,12 @@ public class TasksWebcontroller{
 	@Autowired
 	CWMEngine service;
 
+	/**
+	 * Method to retrieve the list of existing Tasks in the CWM
+	 * @param taskId If specified, only the information related to Task with taskId is listed
+	 * @return A JSON object containing the available Tasks in the CWM
+	 * @throws Exception
+	 */
 	@RequestMapping(method = {RequestMethod.GET })
 	public ResponseEntity<String> listTasks(HttpServletRequest request,
 			@RequestParam(value = "taskId", required = false) String taskId,
@@ -38,6 +53,14 @@ public class TasksWebcontroller{
 		return response;
 	}
 
+	/**
+	 * Method for defining a new Task in the CWM.
+	 * @param taskId Identification for the task (optional). If not provided, CWM will automatically generate one. 
+	 * @param postBody JSON object containing the definition of the Task.
+	 *        TODO Include json example.
+	 * @return The identification of the Task (taskId).
+	 * @throws Exception
+	 */
 	@RequestMapping(method = {RequestMethod.POST})
 	public ResponseEntity<String> createTask(
 			HttpServletRequest request,
@@ -70,6 +93,12 @@ public class TasksWebcontroller{
 		return response;
 	}
 
+	/**
+	 * Method that deletes a specific Task (defined by taskId).
+	 * @param taskId Identification of the task to be deleted.
+	 * @return Message mentioning if the task has been deleted or not.
+	 * @throws Exception If taskId does not exist.
+	 */
 	@RequestMapping(method = {RequestMethod.DELETE })
 	public ResponseEntity<String> deleteTask(HttpServletRequest request,
 			@RequestParam(value="taskId", required = true) String taskId,

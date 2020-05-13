@@ -1,6 +1,5 @@
 package de.dfki.cwm.persistence.workflowexecutions;
 
-import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -8,8 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -18,11 +15,9 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Transient;
 
-import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.mashape.unirest.http.HttpResponse;
@@ -38,7 +33,13 @@ import de.dfki.cwm.persistence.tasks.Task;
 import de.dfki.cwm.persistence.workflowtemplates.WorkflowTemplate;
 
 /**
- * @author Julian Moreno Schneider jumo04@dfki.de
+ * @author Julian Moreno Schneider julian.moreno_schneider@dfki.de
+ * @modified_by 
+ * @project CurationWorkflowManager
+ * @date 20.04.2020
+ * @date_modified 
+ * @company DFKI
+ * @description Class representing the
  *
  */
 @Entity
@@ -145,14 +146,15 @@ public class WorkflowExecution {
 		tasks = new LinkedList<Task>();
 		tasksIds = new LinkedList<String>();
 		try{
-			this.workflowExecutionName = workflowExecutionDescription.getString("workflowExecutionName");
-			if(workflowExecutionDescription.has("workflowExecutionId")) {
-				this.workflowExecutionId = workflowExecutionDescription.getString("workflowExecutionId");
-//				this.workflowExecutionId += "_"+(new Date()).getTime();
-			}
-			else {
-				this.workflowExecutionId = wt.getWorkflowTemplateId()+"_"+(new Date()).getTime();
-			}
+			
+			/**
+			 * TODO include user and project from the JSON if comming.
+			 */
+			
+			this.workflowExecutionName = workflowExecutionDescription.getString("workflowExecutionName");			
+			this.workflowExecutionId  = (workflowExecutionDescription.has("workflowExecutionId")) 
+					? workflowExecutionDescription.getString("workflowExecutionId") 
+					: wt.getWorkflowTemplateId()+"_"+(new Date()).getTime();
 
 			this.statusCallback = workflowExecutionDescription.has("statusCallback") ? workflowExecutionDescription.getString("statusCallback") : null;
 			this.outputCallback = workflowExecutionDescription.has("outputCallback") ? workflowExecutionDescription.getString("outputCallback") : null;
@@ -184,12 +186,7 @@ public class WorkflowExecution {
 				e.printStackTrace();
 				throw new Exception("Input value is not (properly) defined in Workflow Description: "+e.getMessage());
 			}
-			try {
-				inputLanguage = workflowExecutionDescription.getString("language");
-			}
-			catch(JSONException e) {
-				inputLanguage = null;
-			}
+			inputLanguage = (workflowExecutionDescription.has("language")) ? workflowExecutionDescription.getString("language") : null;
 
 			//			System.out.println("WorkflowId (constructor with json): "+this.workflowId);
 
@@ -258,26 +255,26 @@ public class WorkflowExecution {
 		this(new JSONObject(workflowString),dataManager, wt);
 	}
 
-	public void reestablishComponents(DataManager dataManager) {
-		try {
-			components = new LinkedList<WorkflowComponent>();
-			//			System.out.println("Workflow reestablishment: "+workflowId);
-			for (String wcd : componentsDefinitions) {
-				WorkflowComponent wc = WorkflowComponent.defineComponent(new JSONObject(wcd),dataManager, this.workflowExecutionId);
-				components.add(wc);
-				HashMap<String, List<JSONObject>> componentHash = new HashMap<String, List<JSONObject>>();
-				componentHash.put("waiting", new LinkedList<JSONObject>());
-				componentHash.put("running", new LinkedList<JSONObject>());
-				componentHash.put("done", new LinkedList<JSONObject>());
-				componentsToDocuments.put(wc.getWorkflowComponentId(), componentHash);
-			}
-		}catch(Exception e) {
-			e.printStackTrace();
-			System.out.println("----------------------------");
-			System.out.println("ERROR in reestablishing componentss");
-			System.out.println("----------------------------");
-		}
-	}
+//	public void reestablishComponents(DataManager dataManager) {
+//		try {
+//			components = new LinkedList<WorkflowComponent>();
+//			//			System.out.println("Workflow reestablishment: "+workflowId);
+//			for (String wcd : componentsDefinitions) {
+//				WorkflowComponent wc = WorkflowComponent.defineComponent(new JSONObject(wcd),dataManager, this.workflowExecutionId);
+//				components.add(wc);
+//				HashMap<String, List<JSONObject>> componentHash = new HashMap<String, List<JSONObject>>();
+//				componentHash.put("waiting", new LinkedList<JSONObject>());
+//				componentHash.put("running", new LinkedList<JSONObject>());
+//				componentHash.put("done", new LinkedList<JSONObject>());
+//				componentsToDocuments.put(wc.getWorkflowComponentId(), componentHash);
+//			}
+//		}catch(Exception e) {
+//			e.printStackTrace();
+//			System.out.println("----------------------------");
+//			System.out.println("ERROR in reestablishing componentss");
+//			System.out.println("----------------------------");
+//		}
+//	}
 
 	public String executeComponents(String input, DataManager manager) {
 		String serviceResult = input;
@@ -285,7 +282,7 @@ public class WorkflowExecution {
 			int counter = 0;
 			for (WorkflowComponent wfc : components) {
 				counter++;
-				String auxStatus = "RUNNING --> "+counter+"/"+components.size()+" component: "+wfc.getWorkflowComponentId();
+				String auxStatus = "RUNNING --> "+counter+"/"+components.size()+" component: "+wfc.getWorkflowComponentName();
 				System.out.println(auxStatus);
 //				System.out.println(wfc.getClass());
 //				System.out.println(wfc.getJSONRepresentation().toString(1));
@@ -293,14 +290,14 @@ public class WorkflowExecution {
 				//					System.out.println(wfc.getWorkflowComponentId());
 				//					System.out.println(wfc.getClass());
 				//					wfc.executeComponent(documentId, priority);
-				System.out.println("Service input ("+wfc.getName()+"--"+wfc.getWorkflowComponentName()+") result: "+serviceResult);
+				System.out.println("Service input ("+wfc.getWorkflowComponentName()+"--"+wfc.getWorkflowComponentName()+") result: "+serviceResult);
 				if(parameters!=null && !parameters.isEmpty()) {
 					serviceResult = wfc.executeComponent(serviceResult, parameters, priority, manager, outputCallback, statusCallback, inputPersist, inputContent);
 				}
 				else {
 					serviceResult = wfc.executeComponent(serviceResult, priority, manager, outputCallback, statusCallback, inputPersist, inputContent);
 				}
-				System.out.println("Service output ("+wfc.getName()+"--"+wfc.getWorkflowComponentName()+") result: "+serviceResult);
+				System.out.println("Service output ("+wfc.getWorkflowComponentName()+"--"+wfc.getWorkflowComponentName()+") result: "+serviceResult);
 				if(serviceResult==null){
 					return null;
 				}
@@ -374,7 +371,7 @@ public class WorkflowExecution {
 		CompletableFuture.supplyAsync(() -> {
 			String s = "";
 			try {
-				System.out.println("EXEUTING THE FIRST METHOD IN ASYNCHRONOUS MODE.");
+				System.out.println("EXECUTING THE METHOD IN ASYNCHRONOUS MODE.");
 				s = executeComponents(fileContent2,manager);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -407,7 +404,7 @@ public class WorkflowExecution {
 		CompletableFuture.supplyAsync(() -> {
 			String s = "";
 			try {
-				System.out.println("EXEUTING THE FIRST METHOD IN ASYNCHRONOUS MODE.");
+				System.out.println("EXECUTING THE CONTENT METHOD IN ASYNCHRONOUS MODE.");
 //				System.out.println(fileContent2);
 				s = executeComponents(fileContent2,manager);
 			} catch (Exception e) {

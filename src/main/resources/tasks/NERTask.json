@@ -1,0 +1,58 @@
+{
+	"taskName": "NER Task",
+	"taskId": "NERTask",
+	"serviceId": "NER",
+	"controllerId": "NERController",
+	"component_type": "rabbitmqrestapi",
+	"__uri": "http://dfkiner-88-dev-int.cloud.itandtel.at/eNER/analyzeText",
+	"parameters": [
+		{
+			"name": "language",
+			"type": "parameter",
+			"default_value": "en",
+			"required": true
+		},
+		{
+			"name": "informat",
+			"type": "parameter",
+			"default_value": "text/turtle",
+			"required": true
+		},
+		{
+			"name": "outformat",
+			"type": "parameter",
+			"default_value": "text/turtle",
+			"required": true
+		},
+		{
+			"name": "content",
+			"type": "parameter",
+			"default_value": true,
+			"required": true
+		},
+		{
+			"name": "models",
+			"type": "parameter",
+			"default_value": "ner-wikinerEn_PER;ner-wikinerEn_LOC;ner-wikinerEn_ORG",
+			"required": true
+		},
+		{
+			"name": "analysis",
+			"type": "parameter",
+			"default_value": "language",
+			"required": true
+		},
+		{
+			"name": "mode",
+			"type": "parameter",
+			"default_value": "spot",
+			"required": true
+		},
+		{
+			"name": "text",
+			"type": "body",
+			"required": true
+		}
+	]
+}
+    

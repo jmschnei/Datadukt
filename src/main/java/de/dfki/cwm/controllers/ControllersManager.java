@@ -2,6 +2,8 @@ package de.dfki.cwm.controllers;
 
 import java.io.File;
 import java.io.FileReader;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,9 +13,11 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import de.dfki.cwm.communication.rabbitmq.RabbitMQManager;
 import de.dfki.cwm.exceptions.WorkflowException;
+import de.dfki.cwm.persistence.tasks.Task;
 
 @Component
 public class ControllersManager {
@@ -31,8 +35,56 @@ public class ControllersManager {
 	@Autowired
 	ControllerRepository controllerRepository;
 
+	HashMap<String, Controller> controllers = null;
+	
 	public ControllersManager() throws Exception {
 		conts = new LinkedList<Controller>();
+		controllers = new HashMap<String, Controller>();
+	}
+
+    public Controller save(Controller c) {
+    	Controller c_tosave = c;
+    	controllerRepository.save(c_tosave);
+    	conts.add(c_tosave);
+		controllers.put(c.controllerId, c);
+		return c;
+    }
+    
+	public List<Controller> findAll(){
+//		Collection<Controller> collection = controllers.values();
+//		List<Controller> list = new LinkedList<Controller>();
+//		for (Controller c : collection) {
+//			list.add(c);
+//		}
+//		return list;
+		return conts;
+	}
+
+	@Transactional
+	public Controller findOneByControllerId(String controllerId) throws Exception {
+		Controller c = null;
+		if(controllers.containsKey(controllerId)) {
+//			System.out.println("RETURNING TASK FROM HASHMAP");
+			return controllers.get(controllerId);
+		}
+		else if ((c=controllerRepository.findOneByControllerId(controllerId))!=null) {
+//			System.out.println("RETURNING TASK FROM REPOSITORY");
+			return c;
+		}
+		else {
+			logger.warn("The Task ["+controllerId+"] does not exist.");
+			return null;
+		}
+	}
+
+	@Transactional
+	public void deleteByControllerId(String controllerId) {
+		if ((controllerRepository.findOneByControllerId(controllerId))!=null) {
+			controllerRepository.deleteByControllerId(controllerId);;
+		}
+		if(controllers.containsKey(controllerId)) {
+			controllers.remove(controllerId);
+		}
 	}
 
 	public void initializeServices() throws Exception{
@@ -48,9 +100,21 @@ public class ControllersManager {
 					logger.info("Initializing "+file.getName());
 					String fileContent = IOUtils.toString(new FileReader(file));
 					JSONObject json = new JSONObject(fileContent);
-					Controller c = new Controller(json, rabbitMQManager);
-					controllerRepository.save(c);
-					conts.add(c);
+					
+					try {
+						Controller c = Controller.constructController(json, rabbitMQManager);
+						if(c!=null) {
+							controllerRepository.save(c);
+							conts.add(c);
+						}
+						else {
+							logger.error("Controller not created.");
+						}
+					}
+					catch(Exception e) {
+						logger.error(e.getMessage());
+						throw e;
+					}					
 				}
 			}
 		}
@@ -88,14 +152,14 @@ public class ControllersManager {
 		logger.info(" ... stopping services in ControllersManager DONE.");
 	}
 
-	@SuppressWarnings("deprecation")
 	public void stopRunningServices() throws Exception{
 		logger.info("Stopping execution Controllers of ControllersManager ... ");
 		if(conts==null) {
 			throw new WorkflowException("Error: controllers list is NULL in ControllersManager");
 		}		
 		for (Controller controller : conts) {
-			controller.stop();
+//			controller.stop();
+			controller.stopController();
 			logger.info("Controller ["+controller.getControllerName()+" ("+controller.getControllerId()+")] STOPPED");
 		}
 		logger.info(" ... stopping executions Controllers in ControllersManager DONE.");

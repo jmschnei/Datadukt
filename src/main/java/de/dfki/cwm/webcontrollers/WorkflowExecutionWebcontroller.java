@@ -18,6 +18,15 @@ import org.springframework.web.bind.annotation.RestController;
 import de.dfki.cwm.engine.CWMEngine;
 import de.dfki.cwm.exceptions.WorkflowException;
 
+/**
+ * @author julianmorenoschneider
+ * @project CurationWorkflowManager
+ * @date 20.04.2020
+ * @date_modified 
+ * @company DFKI
+ * @description Class that manages the endpoints for the WorkflowExecution elements: creation, deletion, execution.
+ *
+ */
 @RestController
 @RequestMapping("/cwm/workflowexecutions")
 public class WorkflowExecutionWebcontroller{

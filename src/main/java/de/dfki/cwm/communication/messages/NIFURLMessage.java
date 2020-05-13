@@ -2,6 +2,8 @@ package de.dfki.cwm.communication.messages;
 
 import org.json.JSONObject;
 
+import de.dfki.cwm.communication.rabbitmq.RabbitMQMessage;
+
 public class NIFURLMessage extends RabbitMQMessage{
 
 	/**

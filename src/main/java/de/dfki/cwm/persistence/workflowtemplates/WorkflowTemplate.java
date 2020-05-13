@@ -49,18 +49,18 @@ public class WorkflowTemplate {
 	@Column(columnDefinition="LONGVARCHAR")
 	String workflowTemplateDescription;
 
-//	@OneToMany(cascade=CascadeType.PERSIST)
+////	@OneToMany(cascade=CascadeType.PERSIST)
+////	@ElementCollection
+////	List<WorkflowComponent> components;
 //	@ElementCollection
+//	@Lob
+//	private List<String> componentsDefinitions;
+
+//	@JsonInclude(JsonInclude.Include.NON_NULL)
+//	@Transient
 //	List<WorkflowComponent> components;
-	@ElementCollection
-	@Lob
-	private List<String> componentsDefinitions;
 
 	Date creationTime;
-
-	@JsonInclude(JsonInclude.Include.NON_NULL)
-	@Transient
-	List<WorkflowComponent> components;
 
 	//@ElementCollection
 //	@OneToMany(cascade = CascadeType.ALL,
@@ -81,15 +81,15 @@ public class WorkflowTemplate {
 		this.workflowTemplateId = workflowTemplateId;
 		this.name = templateName;
 		this.workflowTemplateDescription = workflowTemplateDescription;
-		this.componentsDefinitions = componentsDefinitions;
+//		this.componentsDefinitions = componentsDefinitions;
 		this.creationTime = creationTime;
 	}
 
 	public WorkflowTemplate(JSONObject workflowDescription, RabbitMQManager rabbitMQManager, TaskManager taskManager) throws Exception {
 		super();
 		this.workflowTemplateDescription = workflowDescription.toString();
-		componentsDefinitions = new LinkedList<String>();
-		components = new LinkedList<WorkflowComponent>();
+//		componentsDefinitions = new LinkedList<String>();
+//		components = new LinkedList<WorkflowComponent>();
 		tasks = new LinkedList<Task>();
 		tasksIds = new LinkedList<String>();
 		try{
@@ -160,8 +160,8 @@ public class WorkflowTemplate {
 		json.put("name", name);
 		json.put("description", workflowTemplateDescription);
 		JSONArray array = new JSONArray();
-		for (String string: componentsDefinitions) {
-			array.put(new JSONObject(string));
+		for (Task t: tasks) {
+			array.put(t.getJSONRepresentation());
 		}
 		json.put("components", array);
 		json.put("creationTime", creationTime);
@@ -200,21 +200,21 @@ public class WorkflowTemplate {
 		this.creationTime = creationTime;
 	}
 
-	public List<String> getComponentsDefinitions() {
-		return componentsDefinitions;
-	}
-
-	public void setComponentsDefinitions(List<String> componentsDefinitions) {
-		this.componentsDefinitions = componentsDefinitions;
-	}
-
-	public void setComponents(List<WorkflowComponent> components) {
-		this.components = components;
-	}
-
-	public List<WorkflowComponent> getComponents() {
-		return components;
-	}
+//	public List<String> getComponentsDefinitions() {
+//		return componentsDefinitions;
+//	}
+//
+//	public void setComponentsDefinitions(List<String> componentsDefinitions) {
+//		this.componentsDefinitions = componentsDefinitions;
+//	}
+//
+//	public void setComponents(List<WorkflowComponent> components) {
+//		this.components = components;
+//	}
+//
+//	public List<WorkflowComponent> getComponents() {
+//		return components;
+//	}
 
 	
 	public String getWorkflowTemplateId() {

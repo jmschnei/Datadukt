@@ -33,7 +33,7 @@ public abstract class InputComponent extends WorkflowComponent{
 	 * @throws Exception
 	 */
 	public static InputComponent defineInput(String sInputFormat, String sLanguage, boolean inputPersist, boolean inputContent) throws Exception {
-		Format inFormat = Format.valueOf(sInputFormat);
+		Format inFormat = Format.getFormat(sInputFormat);
 		Language language = Language.getLanguage(sLanguage);
 		return defineInput(inFormat, language, inputPersist, inputContent);
 	}
@@ -48,6 +48,7 @@ public abstract class InputComponent extends WorkflowComponent{
 	 * @throws Exception
 	 */
 	public static InputComponent defineInput(Format inFormat, Language language, boolean inputPersist, boolean inputContent) throws Exception {
+		System.out.println("DEBUG: Defining input component for format "+inFormat);
 		switch (inFormat) {
 		case TEXT:
 			if(inputContent) {

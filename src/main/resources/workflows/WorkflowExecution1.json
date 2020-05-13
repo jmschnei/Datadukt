@@ -1,0 +1,23 @@
+{
+	"workflowExecutionName": "LKG Population Workflow Execution 1",
+	"workflowExecutionId": "WETest1",
+	"workflowTemplateId": "TestCodingWeekTemplate",
+	"workflowTemplateCategory": "Text Processing",
+	"userId": "",
+	"projectId": "",
+	"priority": false,
+	"statusCallback": "http://localhost:8091/statusCallback",
+	"outputCallback": "http://localhost:8091/outputCallback",
+	"output": "text/turtle",
+	"persist": false,
+	"isContent": true,
+	"language": "en",
+	"input": "text/plain",
+	"input2": [
+		{
+			"mimetype": "text/plain",
+			"url": "https://dfki-3059.dfki.de/fub/testFile.txt"
+		}
+	]
+}
+    

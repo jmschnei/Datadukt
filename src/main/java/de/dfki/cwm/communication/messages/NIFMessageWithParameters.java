@@ -6,6 +6,8 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import de.dfki.cwm.communication.rabbitmq.RabbitMQMessage;
+
 public class NIFMessageWithParameters extends RabbitMQMessage{
 
 	/**

@@ -1,0 +1,78 @@
+{
+	"taskName": "Split NER GEO Task",
+	"taskId": "SplitNERGEOTask",
+	"serviceId": "SplitNERGEO",
+	"componentName": "Parallel Component 1",
+	"componentId": "NERGEO_Parallel_1",
+	"controllerId": "NONE",
+	"component_type": "parallelcomponent",
+	"input": {
+		"name": "",
+		"componentId": "",
+		"component_type": "split"
+	},
+	"output": {
+		"name": "",
+		"componentId": "",
+		"component_type": "wait"
+	},
+	"components": [
+		{
+			"component_order": 1,
+			"componentName": "Multilingual NER 1",
+			"componentId": "MultilingualNER",
+			"controllerId": "NER",
+			"component_type": "restapi",
+			"uri": "http://localhost:8095/fakeService",
+			"parameters": [
+				{
+					"name": "language",
+					"type": "string",
+					"default_value": "en",
+					"required": true
+				},
+				{
+					"name": "models",
+					"type": "string",
+					"default_value": "all",
+					"required": true
+				},
+				{
+					"name": "analysis",
+					"type": "string",
+					"default_value": "ner",
+					"required": true
+				}
+			]
+		},
+		{
+			"component_order": 2,
+			"componentName": "Multilingual GEO 1",
+			"componentId": "MultilingualGEO1",
+			"controllerId": "GEO",
+			"component_type": "restapi",
+			"uri": "http://localhost:8095/fakeService",
+			"parameters": [
+				{
+					"name": "language",
+					"type": "string",
+					"default_value": "en",
+					"required": true
+				},
+				{
+					"name": "models",
+					"type": "string",
+					"default_value": "all",
+					"required": true
+				},
+				{
+					"name": "analysis",
+					"type": "string",
+					"default_value": "ner",
+					"required": true
+				}
+			]
+		}
+	]
+}
+    

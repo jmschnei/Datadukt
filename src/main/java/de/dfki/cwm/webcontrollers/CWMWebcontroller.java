@@ -15,6 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import de.dfki.cwm.engine.CWMEngine;
 
+/**
+ * @author julianmorenoschneider
+ * @project CurationWorkflowManager
+ * @date 17.04.2020
+ * @date_modified 17.04.2020
+ * @company DFKI
+ * @description Controller including endpoints specific for the CWM management.
+ */
 @RestController
 @RequestMapping("/cwm")
 public class CWMWebcontroller{
@@ -36,7 +44,6 @@ public class CWMWebcontroller{
 		ResponseEntity<String> response = new ResponseEntity<String>("The restcontroller of the Curation Workflow Manager is working properly", responseHeaders, HttpStatus.OK);
 		return response;
 	}
-
 
 	/**
 	 * @param restart
@@ -90,9 +97,13 @@ public class CWMWebcontroller{
 		}
 	}
 
-	//TODO define a method for establishing new configuration properties (let say rabbitmq and others).
+	/**
+	 * TODO define a method for establishing new configuration properties (let say rabbitmq and others).
+	 */
 	
-	//TODO maybe define an endpoint for starting the connection with specific properties, to avoid initialization error if the properties are not correct.
+	/**
+	 * TODO maybe define an endpoint for starting the connection with specific properties, to avoid initialization error if the properties are not correct.
+	 */
 
 }
 

@@ -1,0 +1,8 @@
+{
+	"taskName": "Parallel Task",
+	"taskId": "ParallelTask",
+	"serviceId": "ParallelService",
+	"controllerId": "ParallelComponent",
+	"component_type": "parallelcomponent"
+}
+    

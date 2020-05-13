@@ -1,10 +1,8 @@
 package de.dfki.cwm.components.input;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.jena.rdf.model.Model;
 import org.json.JSONObject;
 
 import de.dfki.cwm.components.WorkflowComponent;
@@ -12,7 +10,9 @@ import de.dfki.cwm.data.Format;
 import de.dfki.cwm.data.Language;
 import de.dfki.cwm.exceptions.WorkflowException;
 import de.dfki.cwm.persistence.DataManager;
-import de.dfki.nif.processing.NIFConverter;
+import de.qurator.commons.QuratorDocument;
+import de.qurator.commons.conversion.QuratorDeserialization;
+import de.qurator.commons.conversion.QuratorSerialization;
 
 /**
  * @author julianmorenoschneider
@@ -28,6 +28,9 @@ public class ConversionInputComponent extends InputComponent {
 	Language language;
 	
 	public ConversionInputComponent(Format inputFormat, Language language) {
+		setWorkflowComponentName("ConversionInputComponent_"+inputFormat);
+		setWorkflowComponentId("ConversionInputComponent_"+inputFormat);
+		setWorkflowComponentType("ConverisonInput");
 		this.inputFormat = inputFormat;
 		this.language = language;
 	}
@@ -35,29 +38,31 @@ public class ConversionInputComponent extends InputComponent {
 	@Override
 	public String executeComponent(String content, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
 		try {
-			Model model = null;
+			QuratorDocument qd = null;
 			switch (inputFormat) {
 			case TEXT:
-				model = NIFConverter.plaintextToNIF(content, null, "2.1", "http://lynxproject.eu/documents/doc"+(new Date()).getTime());
+				qd = new QuratorDocument(content);
 				break;
 			case TURTLE:
 				return content;
 			case RDF:
-				model = NIFConverter.unserializeRDF(content, "text/turtle");
-				break;
-			case JSON:
-				model = NIFConverter.unserializeRDF(content, "application/json");
+				qd = QuratorDeserialization.fromRDF(content, inputFormat.toString());
 				break;
 			case JSONLD:
-				model = NIFConverter.unserializeRDF(content, "application/json-ld");
+				qd = QuratorDeserialization.fromJSONLD(content);
 				break;
-			case RDFXML:
-				model = NIFConverter.unserializeRDF(content, "application/rdf-xml");
-				break;
+//			case JSON:
+//				qd = QuratorDeserialization.fromJSON(content);
+//				model = NIFConverter.unserializeRDF(content, "application/json");
+//				break;
+//			case RDFXML:
+//				qd = QuratorDeserialization.fromRDFXML(content);
+//				model = NIFConverter.unserializeRDF(content, "application/rdf-xml");
+//				break;
 			default:
 				throw new WorkflowException("The INPUT FORMAT ["+inputFormat+"] is not supported.");
 			}
-			return NIFConverter.serializeRDF(model, "text/turtle");
+			return QuratorSerialization.toRDF(qd, "TURTLE");
 		}
 		catch(Exception e) {
 			e.printStackTrace();

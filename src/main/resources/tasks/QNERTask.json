@@ -1,0 +1,8 @@
+{
+	"taskName": "Qurator NER Task",
+	"taskId": "QNERTask",
+	"serviceId": "QNER",
+	"controllerId": "QNERController",
+	"component_type": "rabbitmqrestapi"
+}
+    

@@ -4,15 +4,16 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.jena.rdf.model.Model;
 import org.json.JSONObject;
 
 import com.rabbitmq.client.DeliverCallback;
 
 import de.dfki.cwm.exceptions.WorkflowException;
 import de.dfki.cwm.persistence.DataManager;
-import de.dfki.nif.processing.NIFCombination;
-import de.dfki.nif.processing.NIFConverter;
+import de.qurator.commons.BaseAnnotation;
+import de.qurator.commons.QuratorDocument;
+import de.qurator.commons.conversion.QuratorDeserialization;
+import de.qurator.commons.conversion.QuratorSerialization;
 
 public class WaitCombinerComponent extends WorkflowComponent{
 	
@@ -65,21 +66,25 @@ public class WaitCombinerComponent extends WorkflowComponent{
 //	            //TODO Combine all the results and return them, in case it is not persist and content.
 //	            System.out.println("There are "+results.size()+" results to be combined.");
 //	            
-	            Model resultModel = null;
+	            QuratorDocument qd = null;
 	            String finalResult = null;
 	            if(results.size()==0) {
 	            	throw new Exception("There are no results to combine in WaitAndCombineComponent.");
 	            }
 	            else if(results.size()>1) {
 //		            System.out.println("============================================");
-		            resultModel = NIFConverter.unserializeRDF(results.get(0), "text/turtle");
+	            	qd = QuratorDeserialization.fromRDF(results.get(0), "TURTLE");
 	            	for (int i = 1; i < results.size(); i++) {
 //	            		System.out.println("First Model: "+NIFConverter.serializeRDF(resultModel, "text/turtle"));
 //	            		System.out.println("Second Model: "+results.get(i));
-	            		Model intermediateModel = NIFConverter.unserializeRDF(results.get(i), "text/turtle");
-		            	resultModel = NIFCombination.combineNIFModels(resultModel, intermediateModel);
+	            		QuratorDocument qdIntermediate = QuratorDeserialization.fromRDF(results.get(i), "TURTLE");
+//		            	resultModel = NIFCombination.combineNIFModels(resultModel, intermediateModel);
+		            	for (BaseAnnotation ba : qdIntermediate.getAnnotations()) {
+			            	qd.addAnnotation(ba);
+						}
 					}
-	            	finalResult = NIFConverter.serializeRDF(resultModel, "text/turtle");
+//	            	finalResult = NIFConverter.serializeRDF(resultModel, "text/turtle");
+	            	finalResult = QuratorSerialization.toRDF(qd, "TURTLE");
 	            }
 	            else {
 	            	finalResult = results.get(0);

@@ -1,0 +1,32 @@
+{
+	"workflowTemplateName": "Test Coding Week",
+	"workflowTemplateId": "TestCodingWeekTemplate",
+	"workflowTemplateDescription": "Test workflow template for Coding Week.",
+	"imageName": "MultilingualNLPTemplate.png",
+	"category": "Semantic Analysis of Text",
+	"tasks": [
+		{
+			"order": 1,
+			"taskId": "ParallelTask",
+			"features":{
+				"input": {
+					"componentName": "4321",
+					"componentId": "4321",
+					"component_type": "split"
+				},
+				"output": {
+					"componentName": "1234",
+					"componentId": "1234",
+					"component_type": "waitcombiner"
+				},
+				"tasks":[
+					{
+						"order": 1,
+						"taskId": "NERTask"
+					}
+				]
+			}
+		}
+	]
+}
+    

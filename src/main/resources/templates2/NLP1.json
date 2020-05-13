@@ -1,0 +1,31 @@
+{
+	"workflowTemplateName": "NLP1",
+	"workflowTemplateId": "NLP1",
+	"workflowTemplateDescription": "Example of workflow for NLP tasks.",
+	"category": "Semantic Analysis of Text",
+	"tasks": [
+		{
+			"order": 1,
+			"taskId": "ParallelTask",
+			"tasks":[
+				{
+					"order": 1,
+					"taskId": "NERTask"
+				},
+				{
+					"order": 2,
+					"taskId": "TIMEXTask"
+				},
+				{
+					"order": 3,
+					"taskId": "GEOTask"
+				}
+			]
+		},
+		{
+			"order": 2,
+			"taskId": "TextClass"
+		}
+	]
+}
+    

@@ -1,4 +1,4 @@
-package de.dfki.cwm.controllers;
+package de.dfki.cwm.controllers.restapi;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -16,11 +16,22 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.request.HttpRequest;
 import com.mashape.unirest.request.HttpRequestWithBody;
 
-import de.dfki.cwm.data.QuratorDocument;
 import de.dfki.cwm.exceptions.WorkflowException;
+import de.qurator.commons.QuratorDocument;
+import de.qurator.commons.conversion.QuratorDeserialization;
+import de.qurator.commons.conversion.QuratorSerialization;
 
+/**
+ * @author julianmorenoschneider
+ * @project CurationWorkflowManager
+ * @date 17.04.2020
+ * @date_modified 
+ * @company DFKI
+ * @description 
+ *
+ */
 @Entity
-public class ControllerConnection {
+public class RestApiConnection {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -33,25 +44,24 @@ public class ControllerConnection {
 	String endpoint;
 	//@Transient
 	
-	
 	String bodyContent;
 	
-	HashMap<String, ConnectionParameter> parameters;
+	HashMap<String, RestApiParameter> parameters;
 
-	HashMap<String, ConnectionHeader> headers;
+	HashMap<String, RestApiHeader> headers;
 
-	HashMap<String, ConnectionAuthorization> authorization;
+	HashMap<String, RestApiAuthorization> authorization;
 
-	public ControllerConnection() throws Exception {
+	public RestApiConnection() throws Exception {
 		type = "dummy";
 		endpoint = "";
 		method = "";
-		parameters = new HashMap<String, ConnectionParameter>();
-		headers = new HashMap<String, ConnectionHeader>();
-		authorization = new HashMap<String, ConnectionAuthorization>();
+		parameters = new HashMap<String, RestApiParameter>();
+		headers = new HashMap<String, RestApiHeader>();
+		authorization = new HashMap<String, RestApiAuthorization>();
 	}
 
-	public ControllerConnection(JSONObject connection) throws Exception {
+	public RestApiConnection(JSONObject connection) throws Exception {
 		type = connection.getString("connection_type");
 		if(type==null || type.isEmpty()) {
 			String msg = "Error: Controller Type NULL or EMPTY.";
@@ -63,9 +73,9 @@ public class ControllerConnection {
 		}
 		endpoint = connection.getString("endpoint_url");
 		method = connection.getString("method");
-		parameters = new HashMap<String, ConnectionParameter>();
-		headers = new HashMap<String, ConnectionHeader>();
-		authorization = new HashMap<String, ConnectionAuthorization>();
+		parameters = new HashMap<String, RestApiParameter>();
+		headers = new HashMap<String, RestApiHeader>();
+		authorization = new HashMap<String, RestApiAuthorization>();
 
 		if(connection.has("parameters")) {
 			JSONArray array = connection.getJSONArray("parameters");
@@ -78,7 +88,7 @@ public class ControllerConnection {
 					defaultValue = param.getString("default_value");
 				}
 				boolean required = param.getBoolean("required");
-				ConnectionParameter cp = new ConnectionParameter(name, type, defaultValue, required);
+				RestApiParameter cp = new RestApiParameter(name, type, defaultValue, required);
 				parameters.put(cp.name, cp);
 			}
 		}
@@ -100,7 +110,7 @@ public class ControllerConnection {
 					defaultValue = param.getString("default_value");
 				}
 				boolean required = param.getBoolean("required");
-				ConnectionAuthorization cp = new ConnectionAuthorization(name, type, defaultValue, required);
+				RestApiAuthorization cp = new RestApiAuthorization(name, type, defaultValue, required);
 				authorization.put(cp.name, cp);
 			}
 		}
@@ -116,7 +126,7 @@ public class ControllerConnection {
 					defaultValue = param.getString("default_value");
 				}
 				boolean required = param.getBoolean("required");
-				ConnectionHeader cp = new ConnectionHeader(name, type, defaultValue, required);
+				RestApiHeader cp = new RestApiHeader(name, type, defaultValue, required);
 				headers.put(cp.name, cp);
 			}
 		}
@@ -140,8 +150,7 @@ public class ControllerConnection {
 
 //		System.out.println("GENERATING CONNECTION FOR CONTROLLER: "+endpoint);
 		
-		QuratorDocument qDocument = new QuratorDocument();
-		qDocument.unserializeFrom(document, "text/turtle");
+		QuratorDocument qDocument = QuratorDeserialization.fromRDF(document, "TURTLE");
     	
     	String body = "";
     	if(bodyContent!=null) {
@@ -165,7 +174,7 @@ public class ControllerConnection {
 //					else {
 //						body = NIFReader.model2String(modelContent, RDFSerialization.TURTLE);
 //					}
-					body = (String) qDocument.serializeTo("text/turtle");
+					body = (String) QuratorSerialization.toRDF(qDocument, "TURTLE");
 				}
 				else if(defaultValue.contains("jsonTemplate")) {
 					String templateName = defaultValue.substring(defaultValue.indexOf("_")+1);
@@ -178,6 +187,9 @@ public class ControllerConnection {
 					else {
 						body = document;
 					}
+				}
+				else if(defaultValue.contains("inputParameter")) {
+					body = "inputParameter";
 				}
 				else {
 					throw new Exception("body defaultValue not supported \""+defaultValue+"\".");
@@ -224,19 +236,24 @@ public class ControllerConnection {
 			throw new WorkflowException(msg);
 		}
     	for (String key : parameters.keySet()) {
-    		ConnectionParameter param = parameters.get(key);
+    		RestApiParameter param = parameters.get(key);
     		
     		if(hmParameters!=null && hmParameters.containsKey(param.name)) {
         		request = request.queryString(param.name, hmParameters.get(param.name));
 //        		System.out.println("SET PARAMETER: "+param.name+ " --> "+inputParameters.get(param.name));
     		}
     		else {
-        		request = request.queryString(param.name, param.getDefaultValue());
+    			if(param.name.equalsIgnoreCase("input")) {
+    				request = request.queryString(param.name, document);
+    			}
+    			else {
+    				request = request.queryString(param.name, param.getDefaultValue());
+    			}
 //        		System.out.println("SET PARAMETER: "+param.name+ " --> "+param.getDefaultValue());
     		}
 		}
     	for (String key : headers.keySet()) {
-    		ConnectionHeader header = headers.get(key);
+    		RestApiHeader header = headers.get(key);
     		if(hmParameters!=null && hmParameters.containsKey(header.name)) {
         		request = request.header(header.name, hmParameters.get(header.name));
 //        		System.out.println("SET HEADER: "+header.name+ " --> "+inputParameters.getString(header.name));
@@ -247,7 +264,7 @@ public class ControllerConnection {
     		}
 		}
     	for (String key : authorization.keySet()) {
-    		ConnectionAuthorization auth = authorization.get(key);
+    		RestApiAuthorization auth = authorization.get(key);
    			if(auth.name.equalsIgnoreCase("basicauth")) {
    				String user = null;
    				String password = null;
@@ -308,11 +325,11 @@ public class ControllerConnection {
 		this.endpoint = endpoint;
 	}
 
-	public HashMap<String, ConnectionParameter> getParameters() {
+	public HashMap<String, RestApiParameter> getParameters() {
 		return parameters;
 	}
 
-	public void setParameters(HashMap<String, ConnectionParameter> parameters) {
+	public void setParameters(HashMap<String, RestApiParameter> parameters) {
 		this.parameters = parameters;
 	}
 
@@ -325,7 +342,7 @@ public class ControllerConnection {
 		JSONArray parametersArray = new JSONArray();
 		Set<String> keys = parameters.keySet();
 		for (String s : keys) {
-			ConnectionParameter cp = parameters.get(s);
+			RestApiParameter cp = parameters.get(s);
 			JSONObject jsonParameter = new JSONObject();
 			jsonParameter.put("name", cp.getName());
 			jsonParameter.put("type", cp.getType());

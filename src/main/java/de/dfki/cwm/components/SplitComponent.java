@@ -19,7 +19,7 @@ import de.dfki.cwm.persistence.DataManager;
 public class SplitComponent extends WorkflowComponent{
 
 	/**
-	 * Compoonents connected at the output of the SplitComponent
+	 * Components connected at the output of the SplitComponent
 	 */
 	List<WorkflowComponent> componentsList;
 

@@ -1,0 +1,8 @@
+{
+	"taskName": "Wait Task",
+	"taskId": "WaitTask",
+	"serviceId": "Wait",
+	"controllerId": "Wait",
+	"component_type": "wait"
+}
+    

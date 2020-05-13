@@ -1,13 +1,13 @@
-package de.dfki.cwm.controllers;
+package de.dfki.cwm.controllers.restapi;
 
-public class ConnectionHeader {
+public class RestApiParameter {
 
 	String name;
 	String type;
 	String defaultValue;
 	boolean required;
 	
-	public ConnectionHeader(String name, String type, String defaultValue, boolean required) {
+	public RestApiParameter(String name, String type, String defaultValue, boolean required) {
 		super();
 		this.name = name;
 		this.type = type;

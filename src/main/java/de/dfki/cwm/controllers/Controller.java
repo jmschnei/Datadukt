@@ -1,30 +1,30 @@
 package de.dfki.cwm.controllers;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.request.HttpRequest;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DeliverCallback;
 
-import de.dfki.cwm.communication.messages.ProcessingResultMessage;
 import de.dfki.cwm.communication.rabbitmq.RabbitMQManager;
+import de.dfki.cwm.controllers.restapi.RestApiController;
 
 /**
  * @author Julian Moreno Schneider jumo04@dfki.de
+ * @project CurationWorkflowManager
+ * @date 17.04.2020
+ * @date_modified 
+ * @company DFKI
+ * @description 
  *
  */
 @Entity
-public class Controller extends Thread {
+public abstract class Controller extends Thread {
 
 	static Logger logger = Logger.getLogger(Controller.class);
 
@@ -32,17 +32,13 @@ public class Controller extends Thread {
 		CREATED
 	}
 
-	//	@GeneratedValue(strategy = GenerationType.AUTO)
-	//	Integer id;
-
-	//	@JoinColumn(name = "indexId")
 	@Id
-	String controllerId;
-	String controllerName;
+	protected String controllerId;
+	protected String controllerName;
 //	String serviceId;
 
 	@Column(columnDefinition="LONGVARCHAR")
-	String controllerDescription;
+	protected String controllerDescription;
 
 //	@OneToMany(cascade=CascadeType.PERSIST)
 //	@ElementCollection
@@ -60,36 +56,24 @@ public class Controller extends Thread {
 	public String inputQueuePriority;
 	public String outputQueueNormal;
 	public String outputQueuePriority;
-
-	@OneToOne(cascade=CascadeType.PERSIST)
-	ControllerConnection controllerConnection;
 	
 	@Transient
-	RabbitMQManager rabbitMQManager;
-	@Transient
-	String exchangeName;
-	@Transient
-	String routingKey;
+	protected RabbitMQManager rabbitMQManager;
 
 	public Controller() {
 	}
 
 	public Controller(String controllerId, String controllerName, String serviceId, String inputQueueNormal,
 			String inputQueuePriority, String outputQueueNormal, String outputQueuePriority,
-			ControllerConnection controllerConnection, RabbitMQManager rabbitMQManager, String exchangeName,
-			String routingKey) {
+			RabbitMQManager rabbitMQManager) {
 		super();
 		this.controllerId = controllerId;
 		this.controllerName = controllerName;
-//		this.serviceId = serviceId;
 		this.inputQueueNormal = inputQueueNormal;
 		this.inputQueuePriority = inputQueuePriority;
 		this.outputQueueNormal = outputQueueNormal;
 		this.outputQueuePriority = outputQueuePriority;
-		this.controllerConnection = controllerConnection;
 		this.rabbitMQManager = rabbitMQManager;
-		this.exchangeName = exchangeName;
-		this.routingKey = routingKey;
 	}
 
 	public Controller(JSONObject json, RabbitMQManager rabbitMQManager) throws Exception {
@@ -102,9 +86,6 @@ public class Controller extends Thread {
 		inputQueuePriority = queues.getString("nameInputPriority");
 		outputQueueNormal = queues.getString("nameOutputNormal");
 		outputQueuePriority = queues.getString("nameOutputPriority");
-
-		JSONObject connection = json.getJSONObject("connection");
-		controllerConnection = new ControllerConnection(connection);
 		this.rabbitMQManager = rabbitMQManager;
 	}
 
@@ -163,133 +144,17 @@ public class Controller extends Thread {
 //    	logger.info("Finished the execution of ServiceController ["+serviceName+"].");
     }
 
-    private void doWork(String message, boolean priority) throws Exception {
-		try{
-	    	JSONObject jsonObject = new JSONObject(message);
-	    	System.out.println("MESSAGE RECEIVED IN CONTROLLER "+controllerId+": "+message);
-	    	String document = jsonObject.getString("document");
-	    	String workflowExecutionId = jsonObject.getString("workflowId");
-	    	String callbackQueue = jsonObject.getString("callback");
-	    	boolean persist = jsonObject.getBoolean("persist");
-	    	boolean isContent = jsonObject.getBoolean("isContent");
-	    	JSONArray parameters = null;
-	    	if(jsonObject.has("parameters")) {
-//	    		System.out.println(jsonObject.getString("parameters"));
-	    		parameters = jsonObject.getJSONArray("parameters");
-	    	}
+    @SuppressWarnings("deprecation")
+	public void stopController() {
+    	
+		// TODO Auto-generated method stub
 
-//	    	System.out.println("------ Received message in Service Controller ["+serviceName+"]: "+message);
-    	
-	    	//TODO For the moment only the synchronous call has been implemented.
-////    	HttpResponse<String> response371 = Unirest.post(controllerConnection.getEndpoint())
-////				.queryString("documentId", documentId)
-////				.queryString("language", "en")
-////				.queryString("fields", "content;documentId")
-////				.queryString("analyzers", "standard;whitespace")
-////				.queryString("overwrite", true)
-////				.asString();
-	    	HttpRequest hrwb = controllerConnection.getRequest(document,isContent,parameters);
-//    		hrwb = hrwb.queryString("documentURI", document);
-    	
-	    	HttpResponse<String> response371 = hrwb.asString();
-	    		    	
-	    	//TODO We still have to include Synchronous and Asynchronous execution.
-	    	
-			String status = "ERROR";
-			String result = "ERROR";
-			if(response371.getStatus()==200) {
-				status = "CORRECT";
-				
-				System.out.println("RESPONSE BODY IN CONTROLLER "+controllerId+": "+response371.getBody());
-				if(persist) {
-//					NIFAdquirer.saveNIFDocumentInLKGManager(response371.getBody(), "text/turtle");
-				}
-				if(isContent) {
-					result = response371.getBody();
-				}
-				else {
-					result = document;
-				}
-			}
-			else {
-				logger.error(response371.getBody());
-			}
-			ProcessingResultMessage prs = new ProcessingResultMessage(result, status, controllerId, workflowExecutionId);
-//			System.out.println("????????--"+prs.toString());
-			rabbitMQManager.sendMessageToQueue(prs, callbackQueue, priority, false);
-			
-			System.out.println("[Controller ["+controllerName+"]] Executed correctly.");
-		}
-		catch(Exception e){
-			e.printStackTrace();
-		}
+    	this.stop();
 	}
+    
+    protected abstract void doWork(String message, boolean priority) throws Exception; 
 
-    public void testFunctionality(String message, boolean priority) throws Exception {
-		try{
-	    	JSONObject jsonObject = new JSONObject(message);
-	    	System.out.println("MESSAGE RECEIVED IN CONTROLLER "+controllerId+": "+message);
-	    	String document = jsonObject.getString("document");
-	    	String workflowExecutionId = jsonObject.getString("workflowId");
-	    	String callbackQueue = jsonObject.getString("callback");
-	    	boolean persist = jsonObject.getBoolean("persist");
-	    	boolean isContent = jsonObject.getBoolean("isContent");
-	    	JSONArray parameters = null;
-	    	if(jsonObject.has("parameters")) {
-	    		parameters = jsonObject.getJSONArray("parameters");
-	    	}
-
-//	    	System.out.println("------ Received message in Service Controller ["+serviceName+"]: "+message);
-    	
-	    	//TODO For the moment only the synchronous call has been implemented.
-////    	HttpResponse<String> response371 = Unirest.post(controllerConnection.getEndpoint())
-////				.queryString("documentId", documentId)
-////				.queryString("language", "en")
-////				.queryString("fields", "content;documentId")
-////				.queryString("analyzers", "standard;whitespace")
-////				.queryString("overwrite", true)
-////				.asString();
-	    	HttpRequest hrwb = controllerConnection.getRequest(document,isContent,parameters);
-//    		hrwb = hrwb.queryString("documentURI", document);
-    	
-	    	System.out.println("URL: " + hrwb.getUrl());
-	    	System.out.println("BODY: " + hrwb.getBody());
-	    	System.out.println("HEADERS: " + hrwb.getHeaders());
-	    	
-	    	HttpResponse<String> response371 = hrwb.asString();
-
-	    	String status = "ERROR";
-			String result = "ERROR";
-			
-			
-			//TODO Include the possibility of handling Asynchronous calls to services, because if not, TIMEOUT can happen.
-			
-			if(response371.getStatus()==200) {
-				status = "CORRECT";
-				
-				System.out.println("RESPONSE BODY IN CONTROLLER "+controllerId+": "+response371.getBody());
-				if(persist) {
-//					NIFAdquirer.saveNIFDocumentInLKGManager(response371.getBody(), "text/turtle");
-				}
-				if(isContent) {
-					result = response371.getBody();
-				}
-				else {
-					result = document;
-				}
-			}
-			else {
-				logger.error(response371.getBody());
-			}
-			System.out.println(result);
-			System.out.println(status);
-			ProcessingResultMessage prs = new ProcessingResultMessage(result, status, controllerId, workflowExecutionId);
-			System.out.println("[Controller ["+controllerName+"]] Executed correctly.");
-		}
-		catch(Exception e){
-			e.printStackTrace();
-		}
-	}
+    public abstract void testFunctionality(String message, boolean priority) throws Exception;
 
 	public JSONObject getJSONRepresentation() throws Exception{
 		JSONObject json = new JSONObject();
@@ -300,9 +165,8 @@ public class Controller extends Thread {
 		json.put("inputQueuePriority", inputQueuePriority);
 		json.put("outputQueueNormal", outputQueueNormal);
 		json.put("outputQueuePriority", outputQueuePriority);
-		json.put("controllerConnection", controllerConnection.getJSONRepresentation());
-		json.put("exchangeName", exchangeName);
-		json.put("routingKey", routingKey);
+//		json.put("exchangeName", exchangeName);
+//		json.put("routingKey", routingKey);
 		return json;
 	}
 		
@@ -363,6 +227,25 @@ public class Controller extends Thread {
 
 	public void setControllerName(String controllerName) {
 		this.controllerName = controllerName;
+	}
+
+	public static Controller constructController(JSONObject json, RabbitMQManager rabbitMQManager2) throws Exception {
+		String type = (json.has("connectionType")) ? json.getString("connectionType"): "null";
+		switch (type) {
+		case "":
+		case "null":
+			logger.error("Controller type is not defined in controller definition json object.");
+			break;
+		case "restapi":
+			return new RestApiController(json, rabbitMQManager2);
+			/**
+			 * TODO include here more construction types.
+			 */
+		default:
+			logger.error("Controller type: "+type+" not supported.");
+			break;
+		}
+		return null;
 	}
 
 	

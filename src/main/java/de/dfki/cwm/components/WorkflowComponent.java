@@ -37,14 +37,6 @@ public abstract class WorkflowComponent {
 		this.workflowExecutionId = workflowId;
 	}
 
-	public String getName() {
-		return workflowComponentName;
-	}
-
-	public void setName(String name) {
-		this.workflowComponentName = name;
-	}
-
 	public String getWorkflowComponentId() {
 		return workflowComponentId;
 	}
