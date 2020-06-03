@@ -1,14 +1,17 @@
 package de.dfki.cwm.communication.rabbitmq;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import com.rabbitmq.client.Channel;
@@ -30,16 +33,25 @@ public class RabbitMQManager implements CommunicationManager{
 
 	Logger logger = Logger.getLogger(RabbitMQManager.class);
 
-	@Value( "${rabbitmq.username}" )
+//	@Value( "${rabbitmq.username}" )
+//	String userName;
+//	@Value( "${rabbitmq.password}" )
+//	String password;
+//	@Value( "${rabbitmq.virtualhost}" )
+//	String virtualHost;
+//	@Value( "${rabbitmq.hostname}" )
+//	String hostName;
+//	@Value( "${rabbitmq.portnumber}" )
+//	int portNumber;
+
 	String userName;
-	@Value( "${rabbitmq.password}" )
 	String password;
-	@Value( "${rabbitmq.virtualhost}" )
 	String virtualHost;
-	@Value( "${rabbitmq.hostname}" )
 	String hostName;
-	@Value( "${rabbitmq.portnumber}" )
 	int portNumber;
+
+	@Value( "${rabbitmq.configpath}" )
+	String configpath;
 
 	Connection rabbitMQConnection;
 	Channel rabbitMQChannel;
@@ -59,7 +71,40 @@ public class RabbitMQManager implements CommunicationManager{
 
 	@PostConstruct
 	public void setup() throws Exception {
+		logger.info("Starting RabbitMQManager setup...");
+		File config = null;
+		try {
+			config = new ClassPathResource(configpath).getFile();			
+		} catch (Exception e) {
+			config = new File(configpath);
+		}
+		List<String> lines = FileUtils.readLines(config, "utf-8");
+		for (String line : lines) {
+			String parts[] = line.split(":");
+			switch (parts[0]) {
+			case "rabbitmq.username":
+				userName = parts[1];
+				break;
+			case "rabbitmq.password":
+				password = parts[1];
+				break;
+			case "rabbitmq.virtualhost":
+				virtualHost = parts[1];
+				break;
+			case "rabbitmq.hostname":
+				hostName = parts[1];
+				break;
+			case "rabbitmq.portnumber":
+				portNumber = Integer.parseInt(parts[1]);
+				break;
+			default:
+				logger.error("Error in RabbitMQ configuration file: "+parts[0]);
+				System.out.println("Error in RabbitMQ configuration file.");
+				break;
+			}
+		}
 		//startRabbitMQManager();
+		logger.info("... DONE RabbitMQManager setup");
 	}
 
 	public void startManager() throws Exception {
