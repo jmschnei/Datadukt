@@ -14,6 +14,11 @@ import com.mashape.unirest.request.HttpRequest;
 import de.dfki.cwm.communication.messages.ProcessingResultMessage;
 import de.dfki.cwm.communication.rabbitmq.RabbitMQManager;
 import de.dfki.cwm.controllers.Controller;
+import de.qurator.commons.QuratorDocument;
+import de.qurator.commons.conversion.Conversion;
+import de.qurator.commons.conversion.Format;
+import de.qurator.commons.conversion.QuratorDeserialization;
+import de.qurator.commons.conversion.QuratorSerialization;
 
 /**
  * @author Julian Moreno Schneider jumo04@dfki.de
@@ -49,9 +54,11 @@ public class RestApiController extends Controller {
 
 	public RestApiController(String controllerId, String controllerName, String serviceId, String inputQueueNormal,
 			String inputQueuePriority, String outputQueueNormal, String outputQueuePriority,
-			RestApiConnection controllerConnection, RabbitMQManager rabbitMQManager, String exchangeName,
+			RestApiConnection controllerConnection, 
+			String inputFormat, String outputFormat,
+			RabbitMQManager rabbitMQManager, String exchangeName,
 			String routingKey) {
-		super(controllerId,controllerName,serviceId,inputQueueNormal,inputQueuePriority,outputQueueNormal,outputQueuePriority,rabbitMQManager);
+		super(controllerId,controllerName,serviceId,inputQueueNormal,inputQueuePriority,outputQueueNormal,outputQueuePriority,inputFormat,outputFormat,rabbitMQManager);
 		this.controllerConnection = controllerConnection;
 	}
 
@@ -122,6 +129,8 @@ public class RestApiController extends Controller {
     	JSONObject jsonObject = new JSONObject(message);
     	System.out.println("MESSAGE RECEIVED IN CONTROLLER "+controllerId+": "+message);
     	String document = jsonObject.getString("document");
+    	System.out.println("DOCUMENT:");
+    	System.out.println(document);
     	String workflowExecutionId = jsonObject.getString("workflowId");
     	String callbackQueue = jsonObject.getString("callback");
     	boolean persist = jsonObject.getBoolean("persist");
@@ -142,22 +151,36 @@ public class RestApiController extends Controller {
 ////				.queryString("analyzers", "standard;whitespace")
 ////				.queryString("overwrite", true)
 ////				.asString();
-	    	HttpRequest hrwb = controllerConnection.getRequest(document,isContent,parameters);
+			
+			QuratorDocument qd = QuratorDeserialization.fromRDF(document, "TTL");
+			Conversion c = new Conversion();
+			Format inputF = Format.getFormat(inputFormat);
+			String content = c.toFormat(qd, inputF);
+	    	HttpRequest hrwb = controllerConnection.getRequest(content,isContent,parameters);
 //    		hrwb = hrwb.queryString("documentURI", document);
-    	
+	    	
+	    	System.out.println("DEBUG: WE are requesting: "+hrwb.toString());
+	    	
 	    	HttpResponse<String> response371 = hrwb.asString();
-	    		    	
+	    	
 	    	//TODO We still have to include Synchronous and Asynchronous execution.
 	    	
 			if(response371.getStatus()==200) {
 				status = "CORRECT";
 				
 				System.out.println("RESPONSE BODY IN CONTROLLER "+controllerId+": "+response371.getBody());
+				
+				/**
+				 * Here comes the conversion of the output.
+				 */
+				Format outputF = Format.getFormat(outputFormat);
+				QuratorDocument qdout = c.fromString(response371.getBody(), outputF);
+				
 				if(persist) {
 //					NIFAdquirer.saveNIFDocumentInLKGManager(response371.getBody(), "text/turtle");
 				}
 				if(isContent) {
-					result = response371.getBody();
+					result = QuratorSerialization.toRDF(qdout,"TTL");//response371.getBody();
 				}
 				else {
 					result = document;
@@ -263,5 +286,39 @@ public class RestApiController extends Controller {
 //			System.out.println("----------------------------");
 //		}
 //	}
-	
+	public static void main(String[] args) throws Exception {
+		String document = "@prefix lkg-res: <http://lkg.lynx-project.eu/res/> .\r\n" + 
+				"@prefix eli:   <http://data.europa.eu/eli/ontology#> .\r\n" + 
+				"@prefix owl:   <http://www.w3.org/2002/07/owl#> .\r\n" + 
+				"@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\r\n" + 
+				"@prefix itsrdf: <http://www.w3.org/2005/11/its/rdf#> .\r\n" + 
+				"@prefix lkg:   <http://lkg.lynx-project.eu/def/> .\r\n" + 
+				"@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .\r\n" + 
+				"@prefix nif:   <http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#> .\r\n" + 
+				"@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\r\n" + 
+				"@prefix dbo:   <http://dbpedia.org/ontology/> .\r\n" + 
+				"@prefix qont:  <http://qurator-projekt.de/ontology/> .\r\n" + 
+				"@prefix nif-ann: <http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-annotation#> .\r\n" + 
+				"@prefix dct:   <http://purl.org/dc/terms/> .\r\n" + 
+				"@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\r\n" + 
+				"@prefix dbr:   <http://dbpedia.org/resource/> .\r\n" + 
+				"@prefix foaf:  <http://xmlns.com/foaf/0.1/> .\r\n" + 
+				"\r\n" + 
+				"<http://qurator-project.de/res/bad99fbe>\r\n" + 
+				"        a               qont:QuratorDocument , nif:OffsetBasedString , nif:Context ;\r\n" + 
+				"        lkg:metadata    [ eli:id_local  \"bad99fbe\" ;\r\n" + 
+				"                          dct:language  \"en\"\r\n" + 
+				"                        ] ;\r\n" + 
+				"        nif:beginIndex  \"0\"^^xsd:nonNegativeInteger ;\r\n" + 
+				"        nif:endIndex    \"175\"^^xsd:nonNegativeInteger ;\r\n" + 
+				"        nif:isString    \"In Sachsen und Brandenburg hat die CDU bei den Wahlen stark verloren, vor allem an die AfD. Schleswig-Holsteins Ministerpräsident Daniel Günther spricht von einem Alarmsignal.\" .\r\n" + 
+				"";
+		QuratorDocument qd = QuratorDeserialization.fromRDF(document, "TTL");
+//		Conversion c = new Conversion();
+//		Format inputF = Format.getFormat(inputFormat);
+//		String content = c.toFormat(qd, inputF);
+		
+		System.out.println(qd.toJSON());
+
+	}
 }

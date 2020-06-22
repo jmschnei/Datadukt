@@ -29,7 +29,7 @@ public enum Language {
 	public static final String[] ENGLISH = {"EN","english","en","eng","ENG","English","inglés","ingles"};
 	public static final List<String> ENGLISH2 = Arrays.asList("EN","english","en","eng","ENG","English","inglés","ingles");
 	public static final String[] SPANISH = {"ES","spanish","es","spa","SPA","SP","sp","Spanish","español","Español"};
-	public static final List<String> SPANISH2 = Arrays.asList("ES","spanish","es","spa","SPA","SP","sp","Spanish","español","Espa�ol");
+	public static final List<String> SPANISH2 = Arrays.asList("ES","spanish","es","spa","SPA","SP","sp","Spanish","español","Español");
 	public static final String[] GERMAN = {"DE","german","de","deu","DEU","German","Deutsch","deutsch"};
 	public static final List<String> GERMAN2 = Arrays.asList("DE","german","de","deu","DEU","German","Deutsch","deutsch");
 	public static final String[] FRENCH = {"FR","french","fr","fre","FRE","French","francés","Francés"};

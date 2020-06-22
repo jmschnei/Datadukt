@@ -57,6 +57,9 @@ public abstract class Controller extends Thread {
 	public String outputQueueNormal;
 	public String outputQueuePriority;
 	
+	public String inputFormat;
+	public String outputFormat;
+	
 	@Transient
 	protected RabbitMQManager rabbitMQManager;
 
@@ -65,6 +68,7 @@ public abstract class Controller extends Thread {
 
 	public Controller(String controllerId, String controllerName, String serviceId, String inputQueueNormal,
 			String inputQueuePriority, String outputQueueNormal, String outputQueuePriority,
+			String inputFormat, String outputFormat,
 			RabbitMQManager rabbitMQManager) {
 		super();
 		this.controllerId = controllerId;
@@ -73,6 +77,8 @@ public abstract class Controller extends Thread {
 		this.inputQueuePriority = inputQueuePriority;
 		this.outputQueueNormal = outputQueueNormal;
 		this.outputQueuePriority = outputQueuePriority;
+		this.inputFormat = inputFormat;
+		this.outputFormat = outputFormat;
 		this.rabbitMQManager = rabbitMQManager;
 	}
 
@@ -86,6 +92,8 @@ public abstract class Controller extends Thread {
 		inputQueuePriority = queues.getString("nameInputPriority");
 		outputQueueNormal = queues.getString("nameOutputNormal");
 		outputQueuePriority = queues.getString("nameOutputPriority");
+		this.inputFormat = (json.has("input")) ? json.getJSONObject("input").getString("format") : "text";
+		this.outputFormat = (json.has("output")) ? json.getJSONObject("output").getString("format") : "QuratorDocument";
 		this.rabbitMQManager = rabbitMQManager;
 	}
 
@@ -165,6 +173,8 @@ public abstract class Controller extends Thread {
 		json.put("inputQueuePriority", inputQueuePriority);
 		json.put("outputQueueNormal", outputQueueNormal);
 		json.put("outputQueuePriority", outputQueuePriority);
+		json.put("inputFormat", inputFormat);
+		json.put("outputFormat", outputFormat);
 //		json.put("exchangeName", exchangeName);
 //		json.put("routingKey", routingKey);
 		return json;

@@ -17,9 +17,6 @@ import com.mashape.unirest.request.HttpRequest;
 import com.mashape.unirest.request.HttpRequestWithBody;
 
 import de.dfki.cwm.exceptions.WorkflowException;
-import de.qurator.commons.QuratorDocument;
-import de.qurator.commons.conversion.QuratorDeserialization;
-import de.qurator.commons.conversion.QuratorSerialization;
 
 /**
  * @author julianmorenoschneider
@@ -132,12 +129,11 @@ public class RestApiConnection {
 		}
 	}
 	
-	public HttpRequest getRequest(String document, boolean isContent, JSONArray inputParameters) throws Exception {
+	public HttpRequest getRequest(String content, boolean isContent, JSONArray inputParameters) throws Exception {
 //    	String content = null;
-		
-		
 		HashMap<String, String> hmParameters = new HashMap<String, String>();
 		if(inputParameters!=null) {
+			System.out.println("DEBUG: input parameters in getRequest: "+inputParameters.toString(1));
 			for (int i = 0; i < inputParameters.length(); i++) {
 				JSONObject jsonObj = inputParameters.getJSONObject(i);
 				Iterator<String> it = jsonObj.keys();
@@ -147,10 +143,12 @@ public class RestApiConnection {
 				}
 			}
 		}
-
+		else {
+			System.out.println("DEBUG: input parameters in getRequest: NULL");
+		}
 //		System.out.println("GENERATING CONNECTION FOR CONTROLLER: "+endpoint);
-		
-		QuratorDocument qDocument = QuratorDeserialization.fromRDF(document, "TURTLE");
+//		System.out.println("DEBUG: SERIALIZE QDOCUMENT");
+//		QuratorDocument qDocument = QuratorDeserialization.fromRDF(document, "TURTLE");
     	
     	String body = "";
     	if(bodyContent!=null) {
@@ -165,7 +163,8 @@ public class RestApiConnection {
 //					else {
 //						body = NIFReader.extractIsString(modelContent);
 //					}
-					body = qDocument.getText();
+					body = content;//qDocument.getText();
+					System.out.println("DEBUG: INCLUDING TEXT TO BODY REQUEST: "+body);
 				}
 				else if(defaultValue.contains("documentContentNIF")) {
 //					if(isContent) {
@@ -174,7 +173,7 @@ public class RestApiConnection {
 //					else {
 //						body = NIFReader.model2String(modelContent, RDFSerialization.TURTLE);
 //					}
-					body = (String) QuratorSerialization.toRDF(qDocument, "TURTLE");
+					body = content;//(String) QuratorSerialization.toRDF(qDocument, "TURTLE");
 				}
 				else if(defaultValue.contains("jsonTemplate")) {
 					String templateName = defaultValue.substring(defaultValue.indexOf("_")+1);
@@ -185,7 +184,7 @@ public class RestApiConnection {
 						throw new Exception("documentURI body can not be defined with variable isContent=true.");
 					}
 					else {
-						body = document;
+						body = content;
 					}
 				}
 				else if(defaultValue.contains("inputParameter")) {
@@ -201,6 +200,8 @@ public class RestApiConnection {
 //	    	System.out.println("CONTENT FOR CONTROLLER CONNECTION: "+body);
     	}
 
+    	System.out.println("DEBUG: DEFINING REQUEST: ");
+    	
     	HttpRequest request;
 		if(method.equalsIgnoreCase("get")) {
 	    	request = Unirest.get(endpoint);
@@ -244,7 +245,7 @@ public class RestApiConnection {
     		}
     		else {
     			if(param.name.equalsIgnoreCase("input")) {
-    				request = request.queryString(param.name, document);
+    				request = request.queryString(param.name, content);
     			}
     			else {
     				request = request.queryString(param.name, param.getDefaultValue());

@@ -53,6 +53,8 @@ public abstract class OutputComponent extends WorkflowComponent{
 //			return new XMLOutputComponent();
 		case URI:
 			return new URIOutputComponent();
+		case ALEPH:
+			return new AlephOutputComponent();
 //		case JSON:
 //			return new ConversionOutputComponent(outputFormat);
 		default:

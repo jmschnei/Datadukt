@@ -9,6 +9,12 @@
 		"nameOutputNormal": "QNER_output_normal",
 		"nameOutputPriority": "QNER_output_prio"
 	},
+	"input": {
+		"format": "text"
+	},
+	"output": {
+		"format": "nif2"
+	},
 	"connection": {
 		"connection_type": "restapi",
 		"method": "GET",
@@ -23,7 +29,7 @@
 			{
 				"name": "outformat",
 				"type": "parameter",
-				"default_value": "json-ld",
+				"default_value": "turtle",
 				"required": true
 			},
 			{

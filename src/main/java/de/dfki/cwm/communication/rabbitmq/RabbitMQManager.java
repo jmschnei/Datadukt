@@ -116,7 +116,7 @@ public class RabbitMQManager implements CommunicationManager{
 			factory.setVirtualHost(virtualHost);
 			factory.setHost(hostName);
 			factory.setPort(portNumber);
-			System.out.println("RABBITMQ features: " + hostName+" "+portNumber+" "+virtualHost);
+			System.out.println("RABBITMQ features: " + hostName+" "+portNumber+" "+virtualHost+ " " + userName + " " + password);
 			rabbitMQConnection = factory.newConnection();
 			rabbitMQChannel = rabbitMQConnection.createChannel();
 			rabbitMQChannel.basicQos(1);
