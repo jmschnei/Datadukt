@@ -91,6 +91,7 @@ public class AlephWebcontroller{
 		        	JSONObject jsonOutput = new JSONObject();
 		        	jsonOutput.put("annotatedDocument", resultQD);
 		        	responseString = jsonOutput.toString();
+		        	responseString = resultQD;
 					httpStatus=HttpStatus.OK;
 				}
 				else {

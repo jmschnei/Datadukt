@@ -51,13 +51,13 @@ public enum Format {
 	public static final List<String> uri2 = Arrays.asList(uri);
 
 	public static final String[] aleph = {"aleph","Aleph","ALEPH","aleph-json","Aleph-json","ALEPH-json","ajson"};
-	public static final List<String> aleph2 = Arrays.asList(uri);
+	public static final List<String> aleph2 = Arrays.asList(aleph);
 
 	public static final String[] nif20 = {"nif2","NIF2","nif2.0","NIF2.0",};
-	public static final List<String> nif202 = Arrays.asList(uri);
+	public static final List<String> nif202 = Arrays.asList(nif20);
 
 	public static final String[] nif21 = {"nif21","NIF21","nif2.1","NIF2.1",};
-	public static final List<String> nif212 = Arrays.asList(uri);
+	public static final List<String> nif212 = Arrays.asList(nif21);
 
 	/**
 	 * @method-description  Translate a string into an enum element
