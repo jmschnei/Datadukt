@@ -50,7 +50,7 @@ public enum Format {
 	public static final String[] uri = {"uri","URI"};
 	public static final List<String> uri2 = Arrays.asList(uri);
 
-	public static final String[] aleph = {"aleph","Aleph","ALEPH"};
+	public static final String[] aleph = {"aleph","Aleph","ALEPH","aleph-json","Aleph-json","ALEPH-json","ajson"};
 	public static final List<String> aleph2 = Arrays.asList(uri);
 
 	public static final String[] nif20 = {"nif2","NIF2","nif2.0","NIF2.0",};

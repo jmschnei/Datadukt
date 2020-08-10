@@ -110,7 +110,7 @@ public class AlephWebcontroller{
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			//throw e;
-			//e.printStackTrace();
+			e.printStackTrace();
         	JSONObject jsonOutput = new JSONObject();
         	jsonOutput.put("msg", e.getMessage());
 			responseString = jsonOutput.toString();

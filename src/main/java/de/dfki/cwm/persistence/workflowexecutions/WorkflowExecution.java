@@ -325,7 +325,7 @@ public class WorkflowExecution {
 	public void notifyOutput(String s) throws Exception {
 		future.complete(s);
 		status = Status.FINISHED;
-		if(outputCallback!=null) {
+		if(outputCallback!=null && !outputCallback.equalsIgnoreCase("")) {
 			HttpResponse<String> callbackResponse = Unirest.post(outputCallback).body(s).asString();
 			if(callbackResponse.getStatus()!=200) {
 				throw new Exception("Error reporting outputCallback from workflow [" + workflowExecutionId + "] with ERROR: " + callbackResponse.getStatus() + " ["+callbackResponse.getBody()+"]");

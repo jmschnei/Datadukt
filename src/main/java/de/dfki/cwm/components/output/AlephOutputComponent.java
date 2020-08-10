@@ -37,9 +37,9 @@ public class AlephOutputComponent extends OutputComponent {
 				
 				//TODO
 				json.put("text", qd.getText());
-				json.put("annotations", qd.getAnnotations());				
-				
-				return json.toString();
+				json.put("annotations", qd.getAnnotations());
+//				return json.toString();
+				return qd.toJSON(false);
 			}
 			catch(Exception e) {
 				throw new WorkflowException(e.getMessage());
