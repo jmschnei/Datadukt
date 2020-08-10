@@ -85,8 +85,8 @@
 		<dependency>
 			<groupId>de.qurator.commons</groupId>
 			<artifactId>java</artifactId>
-			<version>0.0.2-SNAPSHOT</version>
-		    <scope>system</scope>
+			<version>0.0.1-SNAPSHOT</version>
+ 		    <scope>system</scope>
      		<systemPath>${basedir}/lib/java-0.0.1-SNAPSHOT.jar</systemPath>
 		</dependency>
 		<dependency>
