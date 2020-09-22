@@ -1,0 +1,8 @@
+{
+	"taskName": "Qurator Topic Modeling Task",
+	"taskId": "QTopicTask",
+	"serviceId": "QTopic",
+	"controllerId": "QTopicController",
+	"component_type": "rabbitmqrestapi"
+}
+    

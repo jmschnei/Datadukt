@@ -1,0 +1,64 @@
+{
+	"controllerName": "Qurator Topic Controller",
+	"serviceId": "QTopic",
+	"controllerId": "QTopicController",
+	"connectionType": "restapi",
+	"queues": {
+		"nameInputNormal": "QTopic_input_normal",
+		"nameInputPriority": "QTopic_input_prio",
+		"nameOutputNormal": "QTopic_output_normal",
+		"nameOutputPriority": "QTopic_output_prio"
+	},
+	"input": {
+		"format": "text"
+	},
+	"output": {
+		"format": "jsontopic"
+	},
+	"connection": {
+		"connection_type": "restapi",
+		"method": "POST",
+		"endpoint_url": "https://demo.qurator.ai/pub/srv-textclass/models/spacy_xstance_topics_de/classify",
+		"parameters": [
+			{
+				"name": "informat",
+				"type": "parameter",
+				"default_value": "txt",
+				"required": true
+			},
+			{
+				"name": "text",
+				"type": "parameter",
+				"default_value": "",
+				"required": true
+			}
+		],
+		"body": {
+			"content": "jsonTemplate_textTemplate",
+			"format": "{\"text\":\"CONTENT\"}"
+		},
+		"headers": [
+			{
+				"name": "Accept",
+				"type": "header",
+				"default_value": "application/json",
+				"required": true
+			},
+			{
+				"name": "Content-Type",
+				"type": "header",
+				"default_value": "text/plain",
+				"required": true
+			}
+		],
+		"authorization": [
+			{
+				"name": "basicauth",
+				"type": "basicauth",
+				"default_value": "qurator:dd17f230-a879-48cf-9220-55b4fcd4b941",
+				"required": true
+			}
+		]
+	}
+}
+    

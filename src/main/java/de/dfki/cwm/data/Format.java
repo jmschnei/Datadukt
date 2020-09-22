@@ -17,25 +17,41 @@ import de.dfki.cwm.exceptions.WorkflowException;
  * 
  */
 public enum Format {
-	TURTLE,
-	RDF, 
-	JSONLD, 
-	TEXT, 
-	JSON, 
-	RDFXML, 
-	URI,
-	ALEPH,
-	NIFv20,
-	NIFv21,
-	UNK;
+	TURTLE("text/turtle"),
+	RDF("application/rdf"), 
+	JSONLD("application/ld+json"), 
+	TEXT("text/plain"), 
+	JSON("application/json"), 
+	RDFXML("application/xml+rdf"), 
+	URI("uri"),
+	ALEPH("aleph"),
+	NIFv20("nif2.0"),
+	NIFv21("nif2.1"),
+	MP3("audio/mpeg",true),
+	WAV("audio/vnd.wav",true),
+	MULTIPART("multipart/form-data",true),
+	UNK("unknown");
 	
+	String value;
+	boolean isMultimedia;
+	
+	private Format(String value) {
+		this.value=value;
+		isMultimedia = false;
+	}
+
+	private Format(String value, boolean multimedia) {
+		this.value=value;
+		isMultimedia = multimedia;
+	}
+
 	public static final String[] turtle = {"turtle","TURTLE","TTL","ttl","text/turtle"};
 	public static final List<String> turtle2 = Arrays.asList(turtle);
 
 	public static final String[] rdf = {"rdf","RDF","application/rdf"};
 	public static final List<String> rdf2 = Arrays.asList(rdf);
 
-	public static final String[] jsonld = {"jsonld","JSONLD","json-ld","JSON-LD","application/ld+json"};
+	public static final String[] jsonld = {"jsonld","JSONLD","json-ld","JSON-LD","application/ld+json","http://w3id.org/meta-share/omtd-share/Json"};
 	public static final List<String> jsonld2 = Arrays.asList(jsonld);
 
 	public static final String[] text = {"text","TEXT","text/plain","plaintext","PLAINTEXT"};
@@ -58,6 +74,28 @@ public enum Format {
 
 	public static final String[] nif21 = {"nif21","NIF21","nif2.1","NIF2.1",};
 	public static final List<String> nif212 = Arrays.asList(nif21);
+
+	public static final String[] multi = {"multipart/form-data","form","multipart"};
+	public static final List<String> multi2 = Arrays.asList(multi);
+
+	/**
+	 * Audio Formats 
+	 */
+	public static final String[] mp3 = {"mp3","audio/mpeg","mpeg","mpg","http://w3id.org/meta-share/omtd-share/mp3"};
+	public static final List<String> mp32 = Arrays.asList(mp3);
+
+	public static final String[] wav = {"wav","audio/vnd.wav","http://w3id.org/meta-share/omtd-share/wav"};
+	public static final List<String> wav2 = Arrays.asList(wav);
+
+	/**
+	 * Image Formats 
+	 */
+	// TODO 
+
+	/**
+	 * Video Formats 
+	 */
+	// TODO 
 
 	/**
 	 * @method-description  Translate a string into an enum element
@@ -98,8 +136,24 @@ public enum Format {
 		if(nif212.contains(sFormat)) {
 			return NIFv21;
 		}
+		if(mp32.contains(sFormat)) {
+			return MP3;
+		}
+		if(wav2.contains(sFormat)) {
+			return WAV;
+		}
+		if(multi2.contains(sFormat)) {
+			return MULTIPART;
+		}
 		throw new WorkflowException("Unsupported format: "+sFormat);
 	}
 
-
+	@Override
+	public String toString() {
+		return value;
+	}
+	
+	public boolean isMultimedia() {
+		return isMultimedia;
+	}
 }

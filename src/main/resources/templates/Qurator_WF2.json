@@ -1,0 +1,32 @@
+{
+	"workflowTemplateName": "Qurator Workflow 2",
+	"workflowTemplateId": "QuratorWF2",
+	"workflowTemplateDescription": "Description of Qurator Workflow 2. Workflow defined for testing the Topic Modeling service.",
+	"imageName": "MultilingualNLPTemplate.png",
+	"category": "Semantic Analysis of Text",
+	"tasks": [
+		{
+			"order": 1,
+			"taskId": "ParallelTask",
+			"features":{
+				"input": {
+					"componentName": "4321",
+					"componentId": "4321",
+					"component_type": "split"
+				},
+				"output": {
+					"componentName": "1234",
+					"componentId": "1234",
+					"component_type": "waitcombiner"
+				},
+				"tasks":[
+					{
+						"order": 1,
+						"taskId": "QTopicTask"
+					}
+				]
+			}
+		}
+	]
+}
+    

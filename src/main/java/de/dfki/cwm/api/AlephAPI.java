@@ -1,4 +1,4 @@
-package de.dfki.cwm.webcontrollers;
+package de.dfki.cwm.api;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -34,9 +34,9 @@ import de.qurator.commons.conversion.QuratorSerialization;
  */
 @RestController
 @RequestMapping("/wfmanager")
-public class AlephWebcontroller{
+public class AlephAPI{
 
-	Logger logger = Logger.getLogger(AlephWebcontroller.class);
+	Logger logger = Logger.getLogger(AlephAPI.class);
 
 	@Autowired
 	CWMEngine service;

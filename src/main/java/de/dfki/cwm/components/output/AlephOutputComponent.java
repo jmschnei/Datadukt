@@ -11,6 +11,8 @@ import de.dfki.cwm.components.WorkflowComponent;
 import de.dfki.cwm.exceptions.WorkflowException;
 import de.dfki.cwm.persistence.DataManager;
 import de.qurator.commons.BaseAnnotation;
+import de.qurator.commons.Label;
+import de.qurator.commons.LabelAnnotation;
 import de.qurator.commons.LabelPositionAnnotation;
 import de.qurator.commons.QuratorDocument;
 import de.qurator.commons.TextAnnotation;
@@ -36,18 +38,20 @@ public class AlephOutputComponent extends OutputComponent {
 		public String executeComponent(String content, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException {
 			try {
 				
-//				System.out.println("---------------");
-//				System.out.println("---------------");
-//				System.out.println("---------------");
-//				System.out.println(content);
-//				System.out.println("---------------");
-//				System.out.println("---------------");
-//				System.out.println("---------------");
+				System.out.println("---------------");
+				System.out.println("---------------");
+				System.out.println("---------------");
+				System.out.println(content);
+				System.out.println("---------------");
+				System.out.println("---------------");
+				System.out.println("---------------");
 				
 				QuratorDocument qd = QuratorDeserialization.fromRDF(content, "TURTLE");
 				JSONArray arrayE = new JSONArray();
 				JSONArray arrayT = new JSONArray();
 				List<BaseAnnotation> annotations = qd.getAnnotations();
+				List<BaseAnnotation> docannotations = qd.getDocumentAnnotations();
+				annotations.addAll(docannotations);
 				for (BaseAnnotation ba : annotations) {
 //					System.out.println("BA");
 //					System.out.println(ba.toJSON());
@@ -56,16 +60,18 @@ public class AlephOutputComponent extends OutputComponent {
 						String anchor = lpa.anchorOf;
 						arrayE.put(anchor);
 					}
-					else if(ba instanceof TextAnnotation) {
-						TextAnnotation ta = (TextAnnotation) ba;
-						String txt = ta.text;
-						arrayT.put(txt);
+					else if(ba instanceof LabelAnnotation) {
+						LabelAnnotation la = (LabelAnnotation) ba;
+						List<Label> labels = la.getLabels();
+						for (Label l : labels) {
+							arrayT.put(l.annotationProperties.get("qont:Topic"));
+						}
 					}
 				}
 				JSONObject json = new JSONObject();
 				json.put("text", qd.getText());
 				json.put("annotations", arrayE);
-				json.put("texts", arrayT);
+				json.put("topics", arrayT);
 				return json.toString();
 //				return qd.toJSON(false);
 			}
