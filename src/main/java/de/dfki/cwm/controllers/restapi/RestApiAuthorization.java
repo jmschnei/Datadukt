@@ -21,6 +21,9 @@ public class RestApiAuthorization {
 			user = defaultValue.substring(0, defaultValue.indexOf(':'));
 			password = defaultValue.substring(defaultValue.indexOf(':')+1);
 		}
+		else if(name.equalsIgnoreCase("tokenauth")) {
+			user = defaultValue;
+		}
 	}
 
 	public String getName() {

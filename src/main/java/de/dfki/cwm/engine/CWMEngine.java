@@ -35,6 +35,7 @@ import de.dfki.cwm.persistence.workflowexecutions.WorkflowExecution;
 import de.dfki.cwm.persistence.workflowexecutions.WorkflowExecutionManager;
 import de.dfki.cwm.persistence.workflowtemplates.WorkflowTemplate;
 import de.dfki.cwm.persistence.workflowtemplates.WorkflowTemplateManager;
+import de.qurator.commons.QuratorDocument;
 
 /**
  * @author Julian Moreno Schneider julian.moreno_schneider@dfki.de
@@ -97,6 +98,60 @@ public class CWMEngine {
 		startWorkflowManager();
 	}
 	
+	public void initializeTasks() {
+		try {
+			logger.info("Initializing tasks...");
+			ClassPathResource folder = new ClassPathResource(tasksPath);
+			File [] files = folder.getFile().listFiles();
+			for (File file : files) {
+				if(!file.getName().startsWith(".")) {
+					logger.info("Initializing Task "+file.getName());
+					String content = IOUtils.toString(new FileReader(file));
+					Task t = new Task(content, rabbitMQManager);
+					Task t2 = taskManager.findOneByTaskId(t.getTaskId());
+					if(t2!=null) {
+						logger.info("Task ["+t.getTaskId()+"] is already included in TaskRepository.");
+					}
+					else {
+						logger.info("Task ["+t.getTaskId()+"] included.");
+						taskManager.save(t);
+					}
+				}
+			}
+			logger.info("... initializing tasks DONE");
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void initializeWorkflowTemplates() {
+		try {
+			logger.info("Initializing workflowTemplates...");
+			ClassPathResource folder = new ClassPathResource(workflowTemplatesPath);
+			File [] files = folder.getFile().listFiles();
+			for (File file : files) {
+				if(!file.getName().startsWith(".")) {
+					logger.info("Initializing "+file.getName());
+					String content = IOUtils.toString(new FileReader(file));
+					WorkflowTemplate wt = new WorkflowTemplate(content, rabbitMQManager, taskManager);
+					WorkflowTemplate wt2 = workflowTemplateManager.findOneByWorkflowTemplateId(wt.getWorkflowId());
+					if(wt2!=null) {
+						logger.info("WorkflowTemplate ["+wt.getWorkflowId()+"] already included in WorkflowTemplateRepository.");
+					}
+					else {
+						logger.info("WorkflowTemplate ["+wt.getWorkflowId()+"] included.");
+						workflowTemplateManager.save(wt);
+					}
+				}
+			}
+			logger.info("... initializing workflowTemplates DONE");
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public void startWorkflowManager() throws Exception {
 		logger.info("Starting DEFAULT RabbitMQManager ...");
 		controllersManager.initializeServices();
@@ -140,60 +195,6 @@ public class CWMEngine {
 		started=false;
 	}
 
-	public void initializeWorkflowTemplates() {
-		try {
-			logger.info("Initializing workflowTemplates...");
-			ClassPathResource folder = new ClassPathResource(workflowTemplatesPath);
-			File [] files = folder.getFile().listFiles();
-			for (File file : files) {
-				if(!file.getName().startsWith(".")) {
-					logger.info("Initializing "+file.getName());
-					String content = IOUtils.toString(new FileReader(file));
-					WorkflowTemplate wt = new WorkflowTemplate(content, rabbitMQManager, taskManager);
-					WorkflowTemplate wt2 = workflowTemplateManager.findOneByWorkflowTemplateId(wt.getWorkflowId());
-					if(wt2!=null) {
-						logger.info("WorkflowTemplate ["+wt.getWorkflowId()+"] already included in WorkflowTemplateRepository.");
-					}
-					else {
-						logger.info("WorkflowTemplate ["+wt.getWorkflowId()+"] included.");
-						workflowTemplateManager.save(wt);
-					}
-				}
-			}
-			logger.info("... initializing workflowTemplates DONE");
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void initializeTasks() {
-		try {
-			logger.info("Initializing tasks...");
-			ClassPathResource folder = new ClassPathResource(tasksPath);
-			File [] files = folder.getFile().listFiles();
-			for (File file : files) {
-				if(!file.getName().startsWith(".")) {
-					logger.info("Initializing Task "+file.getName());
-					String content = IOUtils.toString(new FileReader(file));
-					Task t = new Task(content, rabbitMQManager);
-					Task t2 = taskManager.findOneByTaskId(t.getTaskId());
-					if(t2!=null) {
-						logger.info("Task ["+t.getTaskId()+"] is already included in TaskRepository.");
-					}
-					else {
-						logger.info("Task ["+t.getTaskId()+"] included.");
-						taskManager.save(t);
-					}
-				}
-			}
-			logger.info("... initializing tasks DONE");
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
 	/************************************************
 	 * Methods related to the Execution of Workflows.
 	 ************************************************/
@@ -215,6 +216,16 @@ public class CWMEngine {
         	throw new Exception(msg);
 		}
 		Object obj = we.execute(content, priority, dataManager);
+		return obj;
+	}
+
+	public Object executeWorkflow(QuratorDocument qd, String workflowExecutionId, boolean priority) throws Exception {
+		WorkflowExecution we = workflowExecutionManager.findOneByWorkflowExecutionId(workflowExecutionId);
+		if(we==null){
+			String msg = String.format("The workflow \"%s\" does not exist.",workflowExecutionId);
+        	throw new Exception(msg);
+		}
+		Object obj = we.execute(qd, priority, dataManager);
 		return obj;
 	}
 

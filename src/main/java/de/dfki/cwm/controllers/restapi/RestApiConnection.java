@@ -17,6 +17,9 @@ import com.mashape.unirest.request.HttpRequest;
 import com.mashape.unirest.request.HttpRequestWithBody;
 
 import de.dfki.cwm.exceptions.WorkflowException;
+import de.qurator.commons.QuratorDocument;
+import de.qurator.commons.conversion.QuratorDeserialization;
+import de.qurator.commons.conversion.QuratorSerialization;
 
 /**
  * @author julianmorenoschneider
@@ -37,12 +40,12 @@ public class RestApiConnection {
 	String type;
 
 	String method;
-	
+
 	String endpoint;
 	//@Transient
-	
+
 	String bodyContent;
-	
+
 	HashMap<String, RestApiParameter> parameters;
 
 	HashMap<String, RestApiHeader> headers;
@@ -89,15 +92,15 @@ public class RestApiConnection {
 				parameters.put(cp.name, cp);
 			}
 		}
-		
+
 		if(connection.has("body")) {
 			JSONObject jsonBody = connection.getJSONObject("body");
 			bodyContent = jsonBody.getString("content");
 		}
 		if(connection.has("authorization")) {
-//			System.out.println(connection.toString(1));
+			//			System.out.println(connection.toString(1));
 			JSONArray arrayAuthorization = connection.getJSONArray("authorization");
-			
+
 			for (int i = 0; i < arrayAuthorization.length(); i++) {
 				JSONObject param = (JSONObject) arrayAuthorization.get(i);
 				String name = param.getString("name");
@@ -128,9 +131,9 @@ public class RestApiConnection {
 			}
 		}
 	}
-	
+
 	public HttpRequest getRequest(String content, boolean isContent, JSONArray inputParameters) throws Exception {
-//    	String content = null;
+		//    	String content = null;
 		HashMap<String, String> hmParameters = new HashMap<String, String>();
 		if(inputParameters!=null) {
 			System.out.println("DEBUG: input parameters in getRequest: "+inputParameters.toString(1));
@@ -146,157 +149,177 @@ public class RestApiConnection {
 		else {
 			System.out.println("DEBUG: input parameters in getRequest: NULL");
 		}
-//		System.out.println("GENERATING CONNECTION FOR CONTROLLER: "+endpoint);
-//		System.out.println("DEBUG: SERIALIZE QDOCUMENT");
-//		QuratorDocument qDocument = QuratorDeserialization.fromRDF(document, "TURTLE");
-    	
-    	String body = "";
-    	if(bodyContent!=null) {
-//    	if(parameters.containsKey("body")) {
-//			String defaultValue = parameters.get("body").defaultValue;
+		hmParameters.put("content", content);
+		hmParameters.put("text", content);
+//		QuratorDocument qd = QuratorDeserialization.fromRDF(content, "TURTLE");
+//		hmParameters.put("text", qd.getText());
+		
+		//		System.out.println("GENERATING CONNECTION FOR CONTROLLER: "+endpoint);
+		//		System.out.println("DEBUG: SERIALIZE QDOCUMENT");
+		//		QuratorDocument qDocument = QuratorDeserialization.fromRDF(document, "TURTLE");
+
+		String body = "";
+		if(bodyContent!=null) {
+			//    	if(parameters.containsKey("body")) {
+			//			String defaultValue = parameters.get("body").defaultValue;
 			String defaultValue = bodyContent;
-//			if(defaultValue.startsWith("{")) {
-				if(defaultValue.contains("documentContentText")) {
-//					if(isContent) {
-//						body = content;
-//					}
-//					else {
-//						body = NIFReader.extractIsString(modelContent);
-//					}
-					body = content;//qDocument.getText();
-					System.out.println("DEBUG: INCLUDING TEXT TO BODY REQUEST: "+body);
-				}
-				else if(defaultValue.contains("documentContentNIF")) {
-//					if(isContent) {
-//						body = content;
-//					}
-//					else {
-//						body = NIFReader.model2String(modelContent, RDFSerialization.TURTLE);
-//					}
-					body = content;//(String) QuratorSerialization.toRDF(qDocument, "TURTLE");
-				}
-				else if(defaultValue.contains("jsonTemplate")) {
-					String templateName = defaultValue.substring(defaultValue.indexOf("_")+1);
-					body = defineAndFillTemplate(templateName,inputParameters);
-				}
-				else if(defaultValue.contains("documentURI")) {
-					if(isContent) {
-						throw new Exception("documentURI body can not be defined with variable isContent=true.");
-					}
-					else {
-						body = content;
-					}
-				}
-				else if(defaultValue.contains("inputParameter")) {
-					body = "inputParameter";
+			//			if(defaultValue.startsWith("{")) {
+			if(defaultValue.contains("documentContentText")) {
+				//					if(isContent) {
+				//						body = content;
+				//					}
+				//					else {
+				//						body = NIFReader.extractIsString(modelContent);
+				//					}
+				body = content;//qDocument.getText();
+				System.out.println("DEBUG: INCLUDING TEXT TO BODY REQUEST: "+body);
+			}
+			else if(defaultValue.contains("documentContentNIF")) {
+				//					if(isContent) {
+				//						body = content;
+				//					}
+				//					else {
+				//						body = NIFReader.model2String(modelContent, RDFSerialization.TURTLE);
+				//					}
+				body = content;//(String) QuratorSerialization.toRDF(qDocument, "TURTLE");
+			}
+			else if(defaultValue.contains("jsonTemplate")) {
+				String templateName = defaultValue.substring(defaultValue.indexOf("_")+1);
+				body = defineAndFillTemplate(templateName,hmParameters);
+			}
+			else if(defaultValue.contains("documentURI")) {
+				if(isContent) {
+					throw new Exception("documentURI body can not be defined with variable isContent=true.");
 				}
 				else {
-					throw new Exception("body defaultValue not supported \""+defaultValue+"\".");
+					body = content;
 				}
-//			}
-//			else {
-//		    	body = defaultValue;
-//			}
-//	    	System.out.println("CONTENT FOR CONTROLLER CONNECTION: "+body);
-    	}
+			}
+			else if(defaultValue.contains("inputParameter")) {
+				body = "inputParameter";
+			}
+			else {
+				throw new Exception("body defaultValue not supported \""+defaultValue+"\".");
+			}
+			//			}
+			//			else {
+			//		    	body = defaultValue;
+			//			}
+			//	    	System.out.println("CONTENT FOR CONTROLLER CONNECTION: "+body);
+		}
 
-    	System.out.println("DEBUG: DEFINING REQUEST: ");
-    	
-    	HttpRequest request;
+		System.out.println("DEBUG: DEFINING REQUEST: ");
+
+		HttpRequest request;
 		if(method.equalsIgnoreCase("get")) {
-	    	request = Unirest.get(endpoint);
-//	    	System.out.println("GET CONNECTION");
+			request = Unirest.get(endpoint);
+			//	    	System.out.println("GET CONNECTION");
 		}
 		else if(method.equalsIgnoreCase("put")) {
-	    	HttpRequestWithBody request2 = Unirest.put(endpoint);
-	    	if(bodyContent!=null) {
-	    		request2.body(body);
-	    	}
-	    	request = request2;
-//	    	System.out.println("PUT CONNECTION");
+			HttpRequestWithBody request2 = Unirest.put(endpoint);
+			if(bodyContent!=null) {
+				request2.body(body);
+			}
+			request = request2;
+			//	    	System.out.println("PUT CONNECTION");
 		}
 		else if(method.equalsIgnoreCase("post")) {
 			HttpRequestWithBody request2 = Unirest.post(endpoint);
-	    	if(bodyContent!=null) {
-//	    		System.out.println("ADDING BODY: "+body);
-	    		request2.body(body);
-	    	}
-	    	request = request2;
-//	    	System.out.println("POST CONNECTION");
+			if(bodyContent!=null) {
+				//	    		System.out.println("ADDING BODY: "+body);
+				request2.body(body);
+			}
+			request = request2;
+			//	    	System.out.println("POST CONNECTION");
 		}
 		else if(method.equalsIgnoreCase("delete")) {
 			HttpRequestWithBody request2 = Unirest.delete(endpoint);
-	    	if(bodyContent!=null) {
-	    		request2.body(body);
-	    	}
-	    	request = request2;
-//	    	System.out.println("DELETE CONNECTION");
+			if(bodyContent!=null) {
+				request2.body(body);
+			}
+			request = request2;
+			//	    	System.out.println("DELETE CONNECTION");
 		}
 		else {
 			String msg = "Error: method ["+method+"] not supported.";
 			throw new WorkflowException(msg);
 		}
-    	for (String key : parameters.keySet()) {
-    		RestApiParameter param = parameters.get(key);
-    		
-    		if(hmParameters!=null && hmParameters.containsKey(param.name)) {
-        		request = request.queryString(param.name, hmParameters.get(param.name));
-//        		System.out.println("SET PARAMETER: "+param.name+ " --> "+inputParameters.get(param.name));
-    		}
-    		else {
-    			if(param.name.equalsIgnoreCase("input")) {
-    				request = request.queryString(param.name, content);
-    			}
-    			else {
-    				request = request.queryString(param.name, param.getDefaultValue());
-    			}
-//        		System.out.println("SET PARAMETER: "+param.name+ " --> "+param.getDefaultValue());
-    		}
+		for (String key : parameters.keySet()) {
+			RestApiParameter param = parameters.get(key);
+
+			if(hmParameters!=null && hmParameters.containsKey(param.name)) {
+				request = request.queryString(param.name, hmParameters.get(param.name));
+				//        		System.out.println("SET PARAMETER: "+param.name+ " --> "+inputParameters.get(param.name));
+			}
+			else {
+				if(param.name.equalsIgnoreCase("input")) {
+					request = request.queryString(param.name, content);
+				}
+				else {
+					request = request.queryString(param.name, param.getDefaultValue());
+				}
+				//        		System.out.println("SET PARAMETER: "+param.name+ " --> "+param.getDefaultValue());
+			}
 		}
-    	for (String key : headers.keySet()) {
-    		RestApiHeader header = headers.get(key);
-    		if(hmParameters!=null && hmParameters.containsKey(header.name)) {
-        		request = request.header(header.name, hmParameters.get(header.name));
-//        		System.out.println("SET HEADER: "+header.name+ " --> "+inputParameters.getString(header.name));
-    		}
-    		else {
-        		request = request.header(header.name, header.getDefaultValue());
-//        		System.out.println("SET HEADER: "+header.name+ " --> "+header.getDefaultValue());
-    		}
+		for (String key : headers.keySet()) {
+			RestApiHeader header = headers.get(key);
+			if(hmParameters!=null && hmParameters.containsKey(header.name)) {
+				request = request.header(header.name, hmParameters.get(header.name));
+				//        		System.out.println("SET HEADER: "+header.name+ " --> "+inputParameters.getString(header.name));
+			}
+			else {
+				request = request.header(header.name, header.getDefaultValue());
+				//        		System.out.println("SET HEADER: "+header.name+ " --> "+header.getDefaultValue());
+			}
 		}
-    	for (String key : authorization.keySet()) {
-    		RestApiAuthorization auth = authorization.get(key);
-   			if(auth.name.equalsIgnoreCase("basicauth")) {
-   				String user = null;
-   				String password = null;
-   	    		if(hmParameters!=null && hmParameters.containsKey(auth.name)) {
-   	    			String value = hmParameters.get(auth.name);
-    				user = value.substring(0, value.indexOf(':'));
-    				password = value.substring(value.indexOf(':')+1);
-    			}
-    			else {
-   	    			user = auth.user;
-   	    			password = auth.password;
-    			}
-        		request = request.basicAuth(user, password);
-//        		System.out.println("SET AUTHORIOZATION: "+user + " --> " + password);
-    		}
-    		else {
-    			throw new Exception ("Unsupported Authorization method in Controller Connection");
-    		}
+		for (String key : authorization.keySet()) {
+			RestApiAuthorization auth = authorization.get(key);
+			if(auth.name.equalsIgnoreCase("basicauth")) {
+				String user = null;
+				String password = null;
+				if(hmParameters!=null && hmParameters.containsKey(auth.name)) {
+					String value = hmParameters.get(auth.name);
+					user = value.substring(0, value.indexOf(':'));
+					password = value.substring(value.indexOf(':')+1);
+				}
+				else {
+					user = auth.user;
+					password = auth.password;
+				}
+				request = request.basicAuth(user, password);
+				//        		System.out.println("SET AUTHORIOZATION: "+user + " --> " + password);
+			}
+			else if(auth.name.equalsIgnoreCase("tokenauth")) {
+				String token = null;
+				if(hmParameters!=null && hmParameters.containsKey(auth.name)) {
+					String value = hmParameters.get(auth.name);
+					token = value;
+				}
+				else {
+					token = auth.user;
+				}
+			    request = request.header("Authorization", "Bearer "+token);
+				System.out.println("SET AUTHORIOZATION: Bearer "+token);
+			}
+			else {
+				throw new Exception ("Unsupported Authorization method in Controller Connection");
+			}
 		}
-    	return request;
+		return request;
 	}
 
-	private String defineAndFillTemplate(String templateName, JSONArray inputParameters) throws Exception {
+	private String defineAndFillTemplate(String templateName, HashMap<String, String> hmParameters) throws Exception {
 		String template = "";
 		if(templateName.equalsIgnoreCase("questionTemplate")) {
-			for (int i = 0; i < inputParameters.length(); i++) {
-				JSONObject jsonObj = inputParameters.getJSONObject(i);
-				if(jsonObj!=null && jsonObj.has("question")) {
-		    		String q = jsonObj.getString("question");
-		    		template = "{\"question\":\""+q+"\"}";
-				}
+			if(hmParameters!=null && hmParameters.containsKey("question")) {
+				String q = hmParameters.get("question");
+				template = "{\"question\":\""+q+"\"}";
+			}
+		}
+		else if(templateName.equalsIgnoreCase("textTemplate")) {
+			if(hmParameters!=null && hmParameters.containsKey("text")) {
+				String t = hmParameters.get("text");
+				template = "{\"text\":\""+t+"\"}";
 			}
 		}
 		return template;

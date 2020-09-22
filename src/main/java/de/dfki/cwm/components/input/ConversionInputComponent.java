@@ -44,6 +44,8 @@ public class ConversionInputComponent extends InputComponent {
 				qd = new QuratorDocument(content);
 				break;
 			case TURTLE:
+			case WAV:
+			case MP3:
 				return content;
 			case RDF:
 				qd = QuratorDeserialization.fromRDF(content, inputFormat.toString());
@@ -51,6 +53,7 @@ public class ConversionInputComponent extends InputComponent {
 			case JSONLD:
 				qd = QuratorDeserialization.fromJSONLD(content);
 				break;
+				
 //			case JSON:
 //				qd = QuratorDeserialization.fromJSON(content);
 //				model = NIFConverter.unserializeRDF(content, "application/json");

@@ -31,6 +31,7 @@ import de.dfki.cwm.exceptions.WorkflowException;
 import de.dfki.cwm.persistence.DataManager;
 import de.dfki.cwm.persistence.tasks.Task;
 import de.dfki.cwm.persistence.workflowtemplates.WorkflowTemplate;
+import de.qurator.commons.QuratorDocument;
 
 /**
  * @author Julian Moreno Schneider julian.moreno_schneider@dfki.de
@@ -420,6 +421,10 @@ public class WorkflowExecution {
 			}
 		});
 		return status.toString();
+	}
+
+	public String execute(QuratorDocument qd, boolean priority, DataManager manager) throws Exception {
+		return execute(qd.toRDF("TURTLE"), priority, manager);
 	}
 
 	public JSONObject getJSONRepresentation() throws Exception{

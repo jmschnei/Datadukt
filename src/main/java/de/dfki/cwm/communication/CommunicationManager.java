@@ -47,6 +47,6 @@ public interface CommunicationManager {
 	public void basicConsumeQueue(String queueName, boolean priority, boolean input, 
 			DeliverCallback deliverCallback, ConsumerShutdownSignalCallback cssc) throws Exception ;
 
-	public boolean sendMessageToQueue(RabbitMQMessage message, String callback, boolean priority, boolean b) throws Exception ;
+	public boolean sendMessageToQueue(CommunicationMessage message, String callback, boolean priority, boolean b) throws Exception ;
 
 }

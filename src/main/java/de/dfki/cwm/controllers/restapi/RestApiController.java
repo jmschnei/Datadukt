@@ -14,6 +14,7 @@ import com.mashape.unirest.request.HttpRequest;
 import de.dfki.cwm.communication.messages.ProcessingResultMessage;
 import de.dfki.cwm.communication.rabbitmq.RabbitMQManager;
 import de.dfki.cwm.controllers.Controller;
+import de.dfki.cwm.conversion.ELGParser;
 import de.qurator.commons.QuratorDocument;
 import de.qurator.commons.conversion.Conversion;
 import de.qurator.commons.conversion.Format;
@@ -174,8 +175,22 @@ public class RestApiController extends Controller {
 				 * Here comes the conversion of the output.
 				 */
 				Format outputF = Format.getFormat(outputFormat);
-				QuratorDocument qdout = c.fromString(response371.getBody(), outputF);
+//				System.out.println("-----------------------------------");
+//				System.out.println("-----------------------------------");
+//				System.out.println("-----------------------------------");
+//				System.out.println("-----------------------------------");
+//				System.out.println(qd.toRDF("TURTLE"));
+//				System.out.println("-----------------------------------");
+//				System.out.println("-----------------------------------");
+//				System.out.println("-----------------------------------");
+//				System.out.println("-----------------------------------");
+				QuratorDocument qdout = c.fromString(qd,response371.getBody(), outputF);
 				
+//				System.out.println(qdout.toRDF("TURTLE"));
+//				System.out.println("-----------------------------------");
+//				System.out.println("-----------------------------------");
+//				System.out.println("-----------------------------------");
+//				System.out.println("-----------------------------------");
 				if(persist) {
 //					NIFAdquirer.saveNIFDocumentInLKGManager(response371.getBody(), "text/turtle");
 				}
@@ -185,6 +200,7 @@ public class RestApiController extends Controller {
 				else {
 					result = document;
 				}
+				System.out.println("[Controller ["+controllerName+"]] Executed correctly with output: "+result);
 				System.out.println("[Controller ["+controllerName+"]] Executed correctly.");
 			}
 			else {
@@ -204,19 +220,23 @@ public class RestApiController extends Controller {
 	}
 
     public void testFunctionality(String message, boolean priority) throws Exception {
+		String status = "ERROR";
+		String result = "ERROR";
+    	JSONObject jsonObject = new JSONObject(message);
+    	System.out.println("MESSAGE RECEIVED IN CONTROLLER "+controllerId+": "+message);
+    	String document = jsonObject.getString("document");
+    	System.out.println("DOCUMENT:");
+    	System.out.println(document);
+    	String workflowExecutionId = jsonObject.getString("workflowId");
+    	String callbackQueue = jsonObject.getString("callback");
+    	boolean persist = jsonObject.getBoolean("persist");
+    	boolean isContent = jsonObject.getBoolean("isContent");
+    	JSONArray parameters = null;
+    	if(jsonObject.has("parameters")) {
+//	    		System.out.println(jsonObject.getString("parameters"));
+    		parameters = jsonObject.getJSONArray("parameters");
+    	}
 		try{
-	    	JSONObject jsonObject = new JSONObject(message);
-	    	System.out.println("MESSAGE RECEIVED IN CONTROLLER "+controllerId+": "+message);
-	    	String document = jsonObject.getString("document");
-	    	String workflowExecutionId = jsonObject.getString("workflowId");
-//	    	String callbackQueue = jsonObject.getString("callback");
-	    	boolean persist = jsonObject.getBoolean("persist");
-	    	boolean isContent = jsonObject.getBoolean("isContent");
-	    	JSONArray parameters = null;
-	    	if(jsonObject.has("parameters")) {
-	    		parameters = jsonObject.getJSONArray("parameters");
-	    	}
-
 //	    	System.out.println("------ Received message in Service Controller ["+serviceName+"]: "+message);
     	
 	    	//TODO For the moment only the synchronous call has been implemented.
@@ -227,47 +247,122 @@ public class RestApiController extends Controller {
 ////				.queryString("analyzers", "standard;whitespace")
 ////				.queryString("overwrite", true)
 ////				.asString();
-	    	HttpRequest hrwb = controllerConnection.getRequest(document,isContent,parameters);
+			
+			QuratorDocument qd = QuratorDeserialization.fromRDF(document, "TTL");
+			Conversion c = new Conversion();
+			Format inputF = Format.getFormat(inputFormat);
+			String content = c.toFormat(qd, inputF);
+	    	HttpRequest hrwb = controllerConnection.getRequest(content,isContent,parameters);
 //    		hrwb = hrwb.queryString("documentURI", document);
-    	
-	    	System.out.println("URL: " + hrwb.getUrl());
-	    	System.out.println("BODY: " + new String(hrwb.getBody().getEntity().getContent().readAllBytes()));
-	    	System.out.println("HEADERS: " + hrwb.getHeaders());
+	    	
+	    	System.out.println("DEBUG: WE are requesting: "+hrwb.toString());
 	    	
 	    	HttpResponse<String> response371 = hrwb.asString();
-
-	    	String status = "ERROR";
-			String result = "ERROR";
-			
-			
-			//TODO Include the possibility of handling Asynchronous calls to services, because if not, TIMEOUT can happen.
-			
+	    	
+	    	//TODO We still have to include Synchronous and Asynchronous execution.
+	    	
 			if(response371.getStatus()==200) {
 				status = "CORRECT";
 				
 				System.out.println("RESPONSE BODY IN CONTROLLER "+controllerId+": "+response371.getBody());
+				
+				/**
+				 * Here comes the conversion of the output.
+				 */
+				Format outputF = Format.getFormat(outputFormat);
+				QuratorDocument qdout = c.fromString(qd,response371.getBody(), outputF);
+				
 				if(persist) {
 //					NIFAdquirer.saveNIFDocumentInLKGManager(response371.getBody(), "text/turtle");
 				}
 				if(isContent) {
-					result = response371.getBody();
+					result = QuratorSerialization.toRDF(qdout,"TTL");//response371.getBody();
 				}
 				else {
 					result = document;
 				}
+				System.out.println("[Controller ["+controllerName+"]] Executed correctly with output: "+result);
+				System.out.println("[Controller ["+controllerName+"]] Executed correctly.");
 			}
 			else {
 				logger.error(response371.getBody());
+				result = response371.getBody();
+				System.out.println("[Controller ["+controllerName+"]] Executed with error: "+result);
 			}
-			System.out.println(result);
-			System.out.println(status);
-			ProcessingResultMessage prs = new ProcessingResultMessage(result, status, controllerId, workflowExecutionId);
-			System.out.println(prs.getByteArray());
-			System.out.println("[Controller ["+controllerName+"]] Executed correctly.");
 		}
 		catch(Exception e){
 			e.printStackTrace();
+			result = e.getMessage();
+			System.out.println("[Controller ["+controllerName+"]] Executed with Exception: "+result);
 		}
+		ProcessingResultMessage prs = new ProcessingResultMessage(result, status, controllerId, workflowExecutionId);
+//		System.out.println("????????--"+prs.toString());
+		rabbitMQManager.sendMessageToQueue(prs, callbackQueue, priority, false);
+
+//		try{
+//	    	JSONObject jsonObject = new JSONObject(message);
+//	    	System.out.println("MESSAGE RECEIVED IN CONTROLLER "+controllerId+": "+message);
+//	    	String document = jsonObject.getString("document");
+//	    	String workflowExecutionId = jsonObject.getString("workflowId");
+////	    	String callbackQueue = jsonObject.getString("callback");
+//	    	boolean persist = jsonObject.getBoolean("persist");
+//	    	boolean isContent = jsonObject.getBoolean("isContent");
+//	    	JSONArray parameters = null;
+//	    	if(jsonObject.has("parameters")) {
+//	    		parameters = jsonObject.getJSONArray("parameters");
+//	    	}
+//
+////	    	System.out.println("------ Received message in Service Controller ["+serviceName+"]: "+message);
+//    	
+//	    	//TODO For the moment only the synchronous call has been implemented.
+//////    	HttpResponse<String> response371 = Unirest.post(controllerConnection.getEndpoint())
+//////				.queryString("documentId", documentId)
+//////				.queryString("language", "en")
+//////				.queryString("fields", "content;documentId")
+//////				.queryString("analyzers", "standard;whitespace")
+//////				.queryString("overwrite", true)
+//////				.asString();
+//	    	HttpRequest hrwb = controllerConnection.getRequest(document,isContent,parameters);
+////    		hrwb = hrwb.queryString("documentURI", document);
+//    	
+//	    	System.out.println("URL: " + hrwb.getUrl());
+//	    	System.out.println("BODY: " + new String(hrwb.getBody().getEntity().getContent().readAllBytes()));
+//	    	System.out.println("HEADERS: " + hrwb.getHeaders());
+//	    	
+//	    	HttpResponse<String> response371 = hrwb.asString();
+//
+//	    	String status = "ERROR";
+//			String result = "ERROR";
+//			
+//			
+//			//TODO Include the possibility of handling Asynchronous calls to services, because if not, TIMEOUT can happen.
+//			
+//			if(response371.getStatus()==200) {
+//				status = "CORRECT";
+//				
+//				System.out.println("RESPONSE BODY IN CONTROLLER "+controllerId+": "+response371.getBody());
+//				if(persist) {
+////					NIFAdquirer.saveNIFDocumentInLKGManager(response371.getBody(), "text/turtle");
+//				}
+//				if(isContent) {
+//					result = response371.getBody();
+//				}
+//				else {
+//					result = document;
+//				}
+//			}
+//			else {
+//				logger.error(response371.getBody());
+//			}
+//			System.out.println(result);
+//			System.out.println(status);
+//			ProcessingResultMessage prs = new ProcessingResultMessage(result, status, controllerId, workflowExecutionId);
+//			System.out.println(prs.getByteArray());
+//			System.out.println("[Controller ["+controllerName+"]] Executed correctly.");
+//		}
+//		catch(Exception e){
+//			e.printStackTrace();
+//		}
 	}
 
 	public JSONObject getJSONRepresentation() throws Exception{
@@ -318,7 +413,19 @@ public class RestApiController extends Controller {
 //		Format inputF = Format.getFormat(inputFormat);
 //		String content = c.toFormat(qd, inputF);
 		
-		System.out.println(qd.toJSON());
+//		System.out.println(qd.toJSON());
 
+		String srvId = "487";
+		ELGParser ep = new ELGParser();
+		Controller rac = ep.parseControllerFromELGId(srvId, null);
+
+		JSONObject obj = new JSONObject();
+		obj.put("document", qd.toRDF("TURTLE"));
+		obj.put("workflowId", "example101");
+		obj.put("callback", "null");
+		obj.put("persist", false);
+		obj.put("isContent", true);		
+		rac.testFunctionality(obj.toString(), false);
+		
 	}
 }

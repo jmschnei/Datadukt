@@ -1,11 +1,8 @@
 package de.dfki.cwm.communication;
 
-public class CommunicationMessage {
 
-	
-	public byte[] getByteArray(){
-		//TODO
-		return null;
-	}
+public abstract class CommunicationMessage {
+
+	public abstract byte[] getByteArray();
 
 }

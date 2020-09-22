@@ -472,7 +472,7 @@ public class RabbitMQManager implements CommunicationManager{
 		rabbitMQChannel.basicConsume(queueName, false, deliverCallback, consumerTag -> { });
 	}
 
-	public boolean sendMessageToQueue(RabbitMQMessage message, String callback, boolean priority, boolean b) throws Exception {
+	public boolean sendMessageToQueue(CommunicationMessage message, String callback, boolean priority, boolean b) throws Exception {
 		try {
 			System.out.println("------------------------------------------------------------");
 			System.out.println("[RabbitMQManager] Sending message to: "+callback);

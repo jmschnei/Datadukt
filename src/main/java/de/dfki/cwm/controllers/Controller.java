@@ -13,6 +13,7 @@ import com.rabbitmq.client.DeliverCallback;
 
 import de.dfki.cwm.communication.rabbitmq.RabbitMQManager;
 import de.dfki.cwm.controllers.restapi.RestApiController;
+import de.dfki.cwm.conversion.ELGParser;
 
 /**
  * @author Julian Moreno Schneider jumo04@dfki.de
@@ -29,7 +30,10 @@ public abstract class Controller extends Thread {
 	static Logger logger = Logger.getLogger(Controller.class);
 
 	public enum Status {
-		CREATED
+		CREATED,
+		RUNNING,
+		PAUSED,
+		STOPPED
 	}
 
 	@Id
@@ -248,6 +252,10 @@ public abstract class Controller extends Thread {
 			break;
 		case "restapi":
 			return new RestApiController(json, rabbitMQManager2);
+		case "elg_restapi":
+			String srvId = (json.has("serviceId")) ? json.getString("serviceId"): "null";
+			ELGParser ep = new ELGParser();
+			return ep.parseControllerFromELGId(srvId, rabbitMQManager2);
 			/**
 			 * TODO include here more construction types.
 			 */

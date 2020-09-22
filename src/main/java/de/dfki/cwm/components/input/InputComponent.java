@@ -58,12 +58,11 @@ public abstract class InputComponent extends WorkflowComponent{
 				return new EmptyInputComponent(inFormat);
 			}
 		case RDF:
-			return new ConversionInputComponent(inFormat, language);
 		case JSON:
-			return new ConversionInputComponent(inFormat, language);
 		case JSONLD:
-			return new ConversionInputComponent(inFormat, language);
 		case RDFXML:
+		case WAV:
+		case MP3:
 			return new ConversionInputComponent(inFormat, language);
 		case URI:
 			return new EmptyInputComponent(inFormat);
