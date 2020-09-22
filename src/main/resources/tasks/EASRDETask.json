@@ -1,0 +1,7 @@
+{
+	"taskName": "ELG ASR DE Task",
+	"taskId": "EASRDETask",
+	"serviceId": "487",
+	"controllerId": "EASRDEController",
+	"component_type": "rabbitmqrestapi"
+}

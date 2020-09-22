@@ -1,0 +1,50 @@
+{
+	"controllerName": "ELG Cogito NER Controller",
+	"serviceId": "ECogitoNER",
+	"controllerId": "ECogitoNERController",
+	"connectionType": "restapi",
+	"queues": {
+		"nameInputNormal": "ECogNER_input_normal",
+		"nameInputPriority": "ECogNER_input_prio",
+		"nameOutputNormal": "ECogNER_output_normal",
+		"nameOutputPriority": "ECogNER_output_prio"
+	},
+	"input": {
+		"format": "text"
+	},
+	"output": {
+		"format": "elg"
+	},	
+	"connection": {
+		"connection_type": "restapi",
+		"method": "POST",
+		"endpoint_url": "https://live.european-language-grid.eu/execution/processText/cogner",
+		"parameters": [],
+		"body": {
+			"content": "body"
+		},
+		"headers": [
+			{
+				"name": "Accept",
+				"type": "header",
+				"default_value": "application/json",
+				"required": true
+			},
+			{
+				"name": "Content-Type",
+				"type": "header",
+				"default_value": "text/plain",
+				"required": true
+			}
+		],
+		"authorization": [
+			{
+				"name": "elg_bearer",
+				"type": "bearer_token",
+				"default_value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJ0MVhwNXlCb1VpREM0emxOdTcyeUNwT3hKRG1fQTdObVRkSjZRcVRiQW5nIn0.eyJqdGkiOiJjMmYzMWIyMi1jYzA4LTRlM2UtYTcxOS0yYzBiZjIyNmJhN2QiLCJleHAiOjE1OTkxNDIxNDcsIm5iZiI6MCwiaWF0IjoxNTk5MTMxMzQ3LCJpc3MiOiJodHRwczovL2xpdmUuZXVyb3BlYW4tbGFuZ3VhZ2UtZ3JpZC5ldS9hdXRoL3JlYWxtcy9FTEciLCJhdWQiOiJlbGdfZ2F0ZWtlZXBlciIsInN1YiI6ImE1N2U3NGI3LTVjNGEtNGJjOC04NmI1LWEyMWJmNDIzZTkxYyIsInR5cCI6IkJlYXJlciIsImF6cCI6InJlYWN0LWNsaWVudCIsIm5vbmNlIjoiMDMxMGI3ZTEtYzYxZi00NDU1LTgzM2EtOGIzMTQ2ZTYxMzBhIiwiYXV0aF90aW1lIjoxNTk5MTMxMjk4LCJzZXNzaW9uX3N0YXRlIjoiYmJlNDZhZTAtZTJkNi00ODAxLWE5MDEtYmVlMjZiZTUwZDU0IiwiYWNyIjoiMCIsImFsbG93ZWQtb3JpZ2lucyI6WyJodHRwczovL2xpdmUuZXVyb3BlYW4tbGFuZ3VhZ2UtZ3JpZC5ldS8iXSwicmVzb3VyY2VfYWNjZXNzIjp7InJlYWN0LWNsaWVudCI6eyJyb2xlcyI6WyJjb25zdW1lciJdfX0sInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgZW1haWwiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6Ikp1bGlhbiBNb3Jlbm8gU2NobmVpZGVyIiwicHJlZmVycmVkX3VzZXJuYW1lIjoianVsaWFuLm1vcmVub19zY2huZWlkZXJAZGZraS5kZSIsImdpdmVuX25hbWUiOiJKdWxpYW4iLCJmYW1pbHlfbmFtZSI6Ik1vcmVubyBTY2huZWlkZXIiLCJlbWFpbCI6Imp1bGlhbi5tb3Jlbm9fc2NobmVpZGVyQGRma2kuZGUifQ.FcLnRFdTKJ0VuNfa1QpH40RC9hXyoMrEDy2lBMF0kn59jYXgRyPBfYYMgSQgA6uE1Rcyu5qwVO3OBxNmtscMI51-SZ3oOUzJr7Jlb5fyQ0glmiuJAYUISH-7chNkEimUsqqYGm7o2l9ARf3n9FWyJ9XVN6T39IdqWdp41SCbgZVSBYxsC5ixwqu5ShmPogb2vswp1cvzsRXqWNpAZpkMyTk61kst3PmDS0Lgv9ZZTc9tlF0dbto9W1P-cdDF3qqKzAY4Bh688Nymth260d0K9XtGL3FEcnp55jyoJeC5Ovw8nup1_ieJKA7NTOi_nYuh-Wx-9Ny_CRaU5pa8DBAn2A",
+				"required": true
+			}
+		]
+	}
+}
+    

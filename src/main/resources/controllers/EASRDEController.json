@@ -1,0 +1,13 @@
+{
+	"controllerName": "ELG ASR DE Controller",
+	"serviceId": "487",
+	"controllerId": "EASRDEController",
+	"connectionType": "elg_restapi",
+	"input": {
+		"format": "text"
+	},
+	"output": {
+		"format": "elg"
+	}
+}
+    
