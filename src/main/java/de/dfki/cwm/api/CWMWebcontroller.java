@@ -1,4 +1,4 @@
-package de.dfki.cwm.webcontrollers;
+package de.dfki.cwm.api;
 
 import java.util.Properties;
 

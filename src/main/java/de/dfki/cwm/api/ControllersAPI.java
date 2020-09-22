@@ -1,4 +1,4 @@
-package de.dfki.cwm.webcontrollers;
+package de.dfki.cwm.api;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -19,9 +19,9 @@ import de.dfki.cwm.engine.CWMEngine;
 
 @RestController
 @RequestMapping("/cwm/controllers")
-public class ControllersWebcontroller{
+public class ControllersAPI{
 
-	Logger logger = Logger.getLogger(ControllersWebcontroller.class);
+	Logger logger = Logger.getLogger(ControllersAPI.class);
 
 	@Autowired
 	CWMEngine service;

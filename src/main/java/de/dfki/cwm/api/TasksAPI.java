@@ -1,4 +1,4 @@
-package de.dfki.cwm.webcontrollers;
+package de.dfki.cwm.api;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -28,9 +28,9 @@ import de.dfki.cwm.engine.CWMEngine;
  */
 @RestController
 @RequestMapping("/cwm/tasks")
-public class TasksWebcontroller{
+public class TasksAPI{
 
-	Logger logger = Logger.getLogger(TasksWebcontroller.class);
+	Logger logger = Logger.getLogger(TasksAPI.class);
 
 	@Autowired
 	CWMEngine service;
