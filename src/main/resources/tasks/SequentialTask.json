@@ -1,0 +1,8 @@
+{
+	"taskName": "Sequential Task",
+	"taskId": "SequentialTask",
+	"serviceId": "SequentialService",
+	"controllerId": "SequentialComponent",
+	"component_type": "Sequentialcomponent"
+}
+    

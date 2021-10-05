@@ -1,0 +1,30 @@
+{
+	"workflowTemplateName": "Qurator Workflow Demo",
+	"workflowTemplateId": "QuratorWFDemo",
+	"workflowTemplateDescription": "",
+	"imageName": "",
+	"category": "",
+	"tasks": [
+		{
+			"order": 1,
+			"taskId": "QNERTask"
+		},
+		{
+			"order": 2,
+			"taskId": "QTopicTask"
+		},
+		{
+			"order": 3,
+			"taskId": "QTimexTask"
+		},
+		{
+			"order": 4,
+			"taskId": "QELTask"
+		},
+		{
+			"order": 5,
+			"taskId": "QMTTask"
+		}
+	]
+}
+    

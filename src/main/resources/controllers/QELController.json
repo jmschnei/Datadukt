@@ -1,0 +1,69 @@
+{
+	"controllerName": "Qurator NER Controller",
+	"serviceId": "QNER",
+	"controllerId": "QNERController",
+	"connectionType": "restapi",
+	"queues": {
+		"nameInputNormal": "QNER_input_normal",
+		"nameInputPriority": "QNER_input_prio",
+		"nameOutputNormal": "QNER_output_normal",
+		"nameOutputPriority": "QNER_output_prio"
+	},
+	"input": {
+		"format": "text"
+	},
+	"output": {
+		"format": "nif2"
+	},
+	"connection": {
+		"connection_type": "restapi",
+		"method": "GET",
+		"endpoint_url": "https://demo.qurator.ai/pub/srv-bertner-de/spotEntities",
+		"parameters": [
+			{
+				"name": "informat",
+				"type": "parameter",
+				"default_value": "txt",
+				"required": true
+			},
+			{
+				"name": "outformat",
+				"type": "parameter",
+				"default_value": "turtle",
+				"required": true
+			},
+			{
+				"name": "input",
+				"type": "parameter",
+				"default_value": "",
+				"required": true
+			}
+		],
+		"body": {
+			"content": "inputParameter"
+		},
+		"headers": [
+			{
+				"name": "Accept",
+				"type": "header",
+				"default_value": "text/turtle",
+				"required": true
+			},
+			{
+				"name": "Content-Type",
+				"type": "header",
+				"default_value": "text/turtle",
+				"required": true
+			}
+		],
+		"authorization": [
+			{
+				"name": "basicauth",
+				"type": "basicauth",
+				"default_value": "qurator:dd17f230-a879-48cf-9220-55b4fcd4b941",
+				"required": true
+			}
+		]
+	}
+}
+    

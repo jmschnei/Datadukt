@@ -1,0 +1,36 @@
+{
+	"workflowTemplateName": "Qurator Workflow Demo",
+	"workflowTemplateId": "QuratorWFDemo4",
+	"workflowTemplateDescription": "",
+	"imageName": "",
+	"category": "",
+	"tasks": [
+		{
+			"order": 1,
+			"taskId": "SequentialTask",
+			"features":{
+				"input": {
+					"componentName": "4321",
+					"componentId": "4321",
+					"component_type": "empty"
+				},
+				"output": {
+					"componentName": "1234",
+					"componentId": "1234",
+					"component_type": "empty"
+				},
+				"tasks":[
+					{
+						"order": 1,
+						"taskId": "QNERTask"
+					},
+					{
+						"order": 2,
+						"taskId": "QMTTask"
+					}
+				]
+			}
+		}
+	]
+}
+    

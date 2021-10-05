@@ -1,0 +1,120 @@
+{
+	"@context": {
+		"@base": "http://qurator-projekt.de/res/",
+		"nif": "http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#",
+		"itsrdf": "http://www.w3.org/2005/11/its/rdf#",
+		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+		"rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+		"owl": "http://www.w3.org/2002/07/owl#",
+		"skos": "http://www.w3.org/2004/02/skos/core#",
+		"dct": "http://purl.org/dc/terms/",
+		"dbo": "http://dbpedia.org/ontology/",
+		"dbr": "http://dbpedia.org/resource/",
+		"xsd": "http://www.w3.org/2001/XMLSchema#",
+		"eli": "http://data.europa.eu/eli/ontology#",
+		"foaf": "http://xmlns.com/foaf/0.1/",
+		"qont": "http://qurator-projekt.de/ontology/",
+		"sameAs": "owl:sameAs",
+		"text": "nif:isString",
+		"parts": {
+			"@id": "qont:has_part",
+			"@container": "@set"
+		},
+		"offset_ini": {
+			"@id": "nif:beginIndex",
+			"@type": "xsd:nonNegativeInteger"
+		},
+		"offset_end": {
+			"@id": "nif:endIndex",
+			"@type": "xsd:nonNegativeInteger"
+		},
+		"metadata": {
+			"@id": "qont:metadata"
+		},
+		"id_local": {
+			"@id": "eli:id_local"
+		},
+		"source": {
+			"@id": "dct:source"
+		},
+		"title": {
+			"@id": "dct:title"
+		},
+		"2type": {
+			"@id": "qont:type",
+			"@container": "@set"
+		},
+		"language": {
+			"@id": "dct:language"
+		},
+		"links": {
+			"@id": "rdfs:seeAlso",
+			"@type": "@id",
+			"@container": "@set"
+		},
+		"uri": {
+			"@id": "dct:uri",
+			"@type": "@id"
+		},
+		"taClassRef": {
+			"@id": "itsrdf:taClassRef",
+			"@type": "@id"
+		},
+		"annotator": {
+			"@id": "qont:annotator",
+			"@type": "@id"
+		},
+		"taIdentRef": {
+			"@id": "itsrdf:taIdentRef",
+			"@type": "@id"
+		},
+		"referenceContext": {
+			"@id": "nif:referenceContext",
+			"@type": "@id"
+		},
+		"taConfidence": {
+			"@id": "itsrdf:taConfidence",
+			"@type": "xsd:decimal"
+		},
+		"taClassConf": {
+			"@id": "nif:taClassConf",
+			"@type": "xsd:decimal"
+		},
+		"anchorOf": {
+			"@id": "nif:anchorOf"
+		},
+		"annotationUnit": {
+			"@id": "nif:annotationUnit",
+			"@container": "@set"
+		},
+		"OLDannotations": {
+			"@reverse": "nif:referenceContext"
+		},
+		"textannotations": {
+			"@id": "qont:TextAnnotationUnit",
+			"@container": "@set"
+		},
+		"document_annotations": {
+			"@id": "qont:DocumentAnnotations",
+			"@container": "@set"
+		},
+		"generatedtext": {
+			"@id": "qont:generatedText"
+		},
+		"labelUnits": {
+			"@id": "qont:LabelUnit",
+			"@container": "@set"
+		},
+		"qont:Label": "qont:Label",
+		"2topicAnnotation": "qont:2TopicAnnotation",
+		"2topic": {
+			"@id": "qont:2Topic",
+			"@type": "@id"
+		}
+	},
+	"@type": "nif:Context",
+	"has_parts": {
+		"@type": "nif:Section"
+	},
+	"metadata": {}
+}

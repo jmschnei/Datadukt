@@ -1,0 +1,56 @@
+{
+	"controllerName": "Qurator Timex Controller",
+	"serviceId": "QTimex",
+	"controllerId": "QTimexController",
+	"connectionType": "elg_restapi",
+	"queues": {
+		"nameInputNormal": "QTimex_input_normal",
+		"nameInputPriority": "QTimex_input_prio",
+		"nameOutputNormal": "QTimex_output_normal",
+		"nameOutputPriority": "QTimex_output_prio"
+	},
+	"input": {
+		"format": "text"
+	},
+	"output": {
+		"format": "nif2"
+	},
+	"connection": {
+		"connection_type": "restapi",
+		"method": "POST",
+		"endpoint_url": "https://live.european-language-grid.eu/execution/processText/timex",
+		"parameters": [
+			{
+				"name": "language",
+				"type": "parameter",
+				"default_value": "de",
+				"required": true
+			},
+			{
+				"name": "creationDate",
+				"type": "parameter",
+				"default_value": "null",
+				"required": true
+			}
+		],
+		"body": {
+			"content": "ELG_JSON"
+		},
+		"headers": [
+			{
+				"name": "Accept",
+				"type": "header",
+				"default_value": "application/json",
+				"required": true
+			},
+			{
+				"name": "Content-Type",
+				"type": "header",
+				"default_value": "application/json",
+				"required": true
+			}
+		],
+		"authorization": []
+	}
+}
+    

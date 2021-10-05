@@ -1,0 +1,63 @@
+{
+	"controllerName": "Qurator MT Controller",
+	"serviceId": "QMT",
+	"controllerId": "QMTController",
+	"connectionType": "restapi",
+	"queues": {
+		"nameInputNormal": "QMT_input_normal",
+		"nameInputPriority": "QMT_input_prio",
+		"nameOutputNormal": "QMT_output_normal",
+		"nameOutputPriority": "QMT_output_prio"
+	},
+	"input": {
+		"format": "text"
+	},
+	"output": {
+		"format": "text"
+	},
+	"connection": {
+		"connection_type": "restapi",
+		"method": "POST",
+		"endpoint_url": "http://localhost:8080/translate",
+		"parameters": [
+			{
+				"name": "orig_lang",
+				"type": "parameter",
+				"default_value": "de",
+				"required": true
+			},
+			{
+				"name": "targ_lang",
+				"type": "parameter",
+				"default_value": "en",
+				"required": true
+			}
+		],
+		"body": {
+			"content": "documentContentText"
+		},
+		"headers": [
+			{
+				"name": "Accept",
+				"type": "header",
+				"default_value": "text/plain",
+				"required": true
+			},
+			{
+				"name": "Content-Type",
+				"type": "header",
+				"default_value": "text/plain",
+				"required": true
+			}
+		],
+		"authorization": [
+			{
+				"name": "basicauth",
+				"type": "basicauth",
+				"default_value": "qurator:dd17f230-a879-48cf-9220-55b4fcd4b941",
+				"required": true
+			}
+		]
+	}
+}
+    

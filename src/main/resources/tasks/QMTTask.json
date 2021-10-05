@@ -1,0 +1,8 @@
+{
+	"taskName": "Qurator MT Task",
+	"taskId": "QMTTask",
+	"serviceId": "QMT",
+	"controllerId": "QMTController",
+	"component_type": "rabbitmqrestapi"
+}
+    

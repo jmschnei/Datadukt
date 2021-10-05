@@ -1,0 +1,8 @@
+{
+	"taskName": "Qurator Timex Task",
+	"taskId": "QTimexTask",
+	"serviceId": "QTimex",
+	"controllerId": "QTimexController",
+	"component_type": "rabbitmqrestapi"
+}
+    

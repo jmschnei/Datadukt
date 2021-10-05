@@ -1,0 +1,8 @@
+{
+	"taskName": "Qurator EL Task",
+	"taskId": "QELTask",
+	"serviceId": "QEL",
+	"controllerId": "QELController",
+	"component_type": "rabbitmqrestapi"
+}
+    

@@ -1,0 +1,193 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/docs/4.0/assets/img/favicons/favicon.ico">
+
+    <title>Listing site for Workflow Manager</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.0/examples/jumbotron/">
+
+    <!-- Bootstrap core CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- Custom styles for this template -->
+    <link href="../../css/speaker.css" rel="stylesheet">
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+      <a class="navbar-brand" href="#"><img src="/images/wmlogo.png" style="max-height:30px;"/></a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Link</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link disabled" href="#">Disabled</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
+            <div class="dropdown-menu" aria-labelledby="dropdown01">
+              <a class="dropdown-item" href="#">Action</a>
+              <a class="dropdown-item" href="#">Another action</a>
+              <a class="dropdown-item" href="#">Something else here</a>
+            </div>
+          </li>
+        </ul>
+        <form class="form-inline my-2 my-lg-0">
+          <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+        </form>
+      </div>
+    </nav>
+
+    <main role="main" class="container">
+      <div class="conta iner">
+        <!-- Example row of columns -->
+        <div class="row">
+          <div class="col-md-12">
+	        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+			  <li class="nav-item">
+			    <a class="nav-link active" id="pills-home-tab" data-toggle="pill" href="#pills-home" role="tab" aria-controls="pills-home" aria-selected="true">Controllers</a>
+			  </li>
+			  <li class="nav-item">
+			    <a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#pills-profile" role="tab" aria-controls="pills-profile" aria-selected="false">Templates</a>
+			  </li>
+			  <li class="nav-item">
+			    <a class="nav-link" id="pills-contact-tab" data-toggle="pill" href="#pills-contact" role="tab" aria-controls="pills-contact" aria-selected="false">Workflow Executions</a>
+			  </li>
+			</ul>
+			<div class="tab-content" id="pills-tabContent">
+			  <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+<!-- 	            <p th:utext="${controllers}"></p> -->
+	            <div class="row">
+		            <div class="col-md-3">
+		            <div class="card text-center">
+					  <div class="card-body">
+					    <h5 class="card-title">Include New Controller</h5>
+					    <a href="./addcontroller" class="btn btn-primary">+</a>
+					  </div>
+					</div>
+					</div>
+					
+		            <div class="col-md-3" th:each="contro: ${contros}">
+		            <div class="card text-center">
+					  <div class="card-header" th:text="${contro.controllerId}">
+					    Featured
+					  </div>
+					  <div class="card-body">
+					    <h5 class="card-title" th:text="${contro.controllerName}">Special title treatment</h5>
+<!-- 					    <p class="card-text" th:text="${contro.controllerDescription}">With supporting text below as a natural lead-in to additional content.</p> -->
+					    <a th:href="@{./controller(controllerId=${contro.controllerId})}" href="./controller?controllerId=" class="btn btn-primary">Go somewhere</a>
+					  </div>
+					  <div class="card-footer text-muted">
+					    2 days ago
+					  </div>
+					</div>
+					</div>
+	            </div>
+			  </div>
+			  <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+<!--              <p th:utext="${templates}"></p> -->
+				<div id="accordion2">
+				  <div class="card">
+				    <div class="card-header" id="headingOne">
+				      <h5 class="mb-0">
+				        <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+				          Add new Workflow Template
+				        </button>
+				      </h5>
+				    </div>
+				    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+				      <div class="card-body">
+				        Content for generating a new Workflow Execution
+				      </div>
+				    </div>
+				  </div>
+				  <div class="card" th:each="templa: ${templas}">
+				    <div class="card-header" id="heading" th:attrappend="id=${templa.workflowTemplateId}">
+				      <h5 class="mb-0">
+				        <button th:utext="${templa.name}" class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapse" th:attrappend="data-target=${templa.workflowTemplateId},aria-controls=${templa.workflowTemplateId}" aria-expanded="false" aria-controls="collapseTwo" >
+				          Collapsible Group Item #2
+				        </button>
+				      </h5>
+				    </div>
+				    <div id="collapse" th:attrappend="id=${templa.workflowTemplateId},aria-labelledby=${templa.workflowTemplateId}" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+				      <div class="card-body">
+				        <h3 th:utext="${templa.workflowTemplateId}" >Execution Id</h3>
+				        <p th:utext="${templa.workflowTemplateDescription}" >Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.</p>
+				      </div>
+				    </div>
+				  </div>
+				</div>
+			  </div>
+			  <div class="tab-pane fade" id="pills-contact" role="tabpanel" aria-labelledby="pills-contact-tab">
+            <p th:utext="${executions}"></p>
+				<div id="accordion3">
+				  <div class="card">
+				    <div class="card-header" id="headingOne">
+				      <h5 class="mb-0">
+				        <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+				          Add new Workflow Execution
+				        </button>
+				      </h5>
+				    </div>
+				    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+				      <div class="card-body">
+				        Content for generating a new Workflow Execution
+				      </div>
+				    </div>
+				  </div>
+				  <div class="card" th:each="execu: ${execus}">
+				    <div class="card-header" id="headingTwo">
+				      <h5 class="mb-0">
+				        <button th:utext="${execu.workflowExecutionName}" class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+				          Collapsible Group Item #2
+				        </button>
+				      </h5>
+				    </div>
+				    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+				      <div class="card-body">
+				        <h3 th:utext="${execu.workflowExecutionId}" >Execution Id</h3>
+				        <p th:utext="${execu.workflowExecutionDescription}" >Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.</p>
+				      </div>
+				    </div>
+				  </div>
+				</div>
+			  </div>
+			</div>
+        </div>
+
+        <hr>
+
+      </div> <!-- /container -->
+
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <span class="text-muted">&copy; DFKI GmbH 2020</span>
+      </div>
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  </body>
+</html>
