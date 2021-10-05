@@ -8,12 +8,12 @@ import org.json.JSONObject;
 
 import com.rabbitmq.client.DeliverCallback;
 
+import de.dfki.cwm.data.documents.BaseAnnotation;
+import de.dfki.cwm.data.documents.WMDocument;
+import de.dfki.cwm.data.documents.conversion.WMDeserialization;
+import de.dfki.cwm.data.documents.conversion.WMSerialization;
 import de.dfki.cwm.exceptions.WorkflowException;
 import de.dfki.cwm.persistence.DataManager;
-import de.qurator.commons.BaseAnnotation;
-import de.qurator.commons.QuratorDocument;
-import de.qurator.commons.conversion.QuratorDeserialization;
-import de.qurator.commons.conversion.QuratorSerialization;
 
 public class WaitCombinerComponent extends WorkflowComponent{
 	
@@ -35,7 +35,14 @@ public class WaitCombinerComponent extends WorkflowComponent{
 			throw e;
 		}
 	}
-		
+
+	@Override
+	public String executeComponentSynchronous(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
+		String msg = "Method not supported in WaitCombiner Component.";
+		System.out.println(msg);
+		throw new WorkflowException(msg);
+	}
+
 	@Override
 	public String executeComponent(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
 		return executeComponent(document, priority, manager, outputCallback, statusCallback, persist, isContent);
@@ -66,25 +73,25 @@ public class WaitCombinerComponent extends WorkflowComponent{
 //	            //TODO Combine all the results and return them, in case it is not persist and content.
 //	            System.out.println("There are "+results.size()+" results to be combined.");
 //	            
-	            QuratorDocument qd = null;
+	            WMDocument qd = null;
 	            String finalResult = null;
 	            if(results.size()==0) {
 	            	throw new Exception("There are no results to combine in WaitAndCombineComponent.");
 	            }
 	            else if(results.size()>1) {
 //		            System.out.println("============================================");
-	            	qd = QuratorDeserialization.fromRDF(results.get(0), "TURTLE");
+	            	qd = WMDeserialization.fromRDF(results.get(0), "TURTLE");
 	            	for (int i = 1; i < results.size(); i++) {
 //	            		System.out.println("First Model: "+NIFConverter.serializeRDF(resultModel, "text/turtle"));
 //	            		System.out.println("Second Model: "+results.get(i));
-	            		QuratorDocument qdIntermediate = QuratorDeserialization.fromRDF(results.get(i), "TURTLE");
+	            		WMDocument qdIntermediate = WMDeserialization.fromRDF(results.get(i), "TURTLE");
 //		            	resultModel = NIFCombination.combineNIFModels(resultModel, intermediateModel);
 		            	for (BaseAnnotation ba : qdIntermediate.getAnnotations()) {
 			            	qd.addAnnotation(ba);
 						}
 					}
 //	            	finalResult = NIFConverter.serializeRDF(resultModel, "text/turtle");
-	            	finalResult = QuratorSerialization.toRDF(qd, "TURTLE");
+	            	finalResult = WMSerialization.toRDF(qd, "TURTLE");
 	            }
 	            else {
 	            	finalResult = results.get(0);

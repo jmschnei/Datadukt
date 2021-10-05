@@ -27,6 +27,17 @@ public class EmptyInputComponent extends InputComponent {
 	}
 
 	@Override
+	public String executeComponentSynchronous(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
+		try {
+			return document;
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			throw new WorkflowException(e.getMessage());
+		}
+	}
+
+	@Override
 	public String executeComponent(String documentURI, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException {
 		try {
 			return documentURI;

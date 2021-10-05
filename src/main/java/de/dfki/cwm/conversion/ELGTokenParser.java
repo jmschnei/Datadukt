@@ -6,8 +6,10 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -15,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -142,7 +145,13 @@ Document docCustomConn = connection.get();
 
 	public static void main(String[] args) throws Exception {
 		ELGTokenParser etp = new ELGTokenParser();
-		System.out.println(etp.getELGServiceToken("487"));
+//		System.out.println(etp.getELGServiceToken("487"));
+		String refreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJlNTJmMmMxYi01N2Y1LTQxYjEtOGJkZS05MjA1OGFjZjQ1YjUifQ.eyJpYXQiOjE2MjQ0NTM5MDQsImp0aSI6ImNjMTVhZTlmLWJiNDAtNGQ1Zi04NTNhLTIyMGYyZjc1NzZjYSIsImlzcyI6Imh0dHBzOi8vbGl2ZS5ldXJvcGVhbi1sYW5ndWFnZS1ncmlkLmV1L2F1dGgvcmVhbG1zL0VMRyIsImF1ZCI6Imh0dHBzOi8vbGl2ZS5ldXJvcGVhbi1sYW5ndWFnZS1ncmlkLmV1L2F1dGgvcmVhbG1zL0VMRyIsInN1YiI6ImE1N2U3NGI3LTVjNGEtNGJjOC04NmI1LWEyMWJmNDIzZTkxYyIsInR5cCI6Ik9mZmxpbmUiLCJhenAiOiJlbGctb29iIiwic2Vzc2lvbl9zdGF0ZSI6IjBjYzQzNmI5LTdjMGMtNDhhMy1iMGZiLWQxZjUxMDViZDMxYSIsInNjb3BlIjoiRUxHLXByb2ZpbGUgcHJvZmlsZSBlbWFpbCBvZmZsaW5lX2FjY2VzcyJ9.ioYyBowIxvf71wejvQ1qkKxg6E0Kg4PU9QXFaKIJowY";
+//		String refreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJlNTJmMmMxYi01N2Y1LTQxYjEtOGJkZS05MjA1OGFjZjQ1YjUifQ.eyJpYXQiOjE2MjQ0NTM5MDQsImp0aSI6ImNjMTVhZTlmLWJiNDAtNGQ1Zi04NTNhLTIyMGYyZjc1NzZjYSIsImlzcyI6Imh0dHBzOi8vbGl2ZS5ldXJvcGVhbi1sYW5ndWFnZS1ncmlkLmV1L2F1dGgvcmVhbG1zL0VMRyIsImF1ZCI6Imh0dHBzOi8vbGl2ZS5ldXJvcGVhbi1sYW5ndWFnZS1ncmlkLmV1L2F1dGgvcmVhbG1zL0VMRyIsInN1YiI6ImE1N2U3NGI3LTVjNGEtNGJjOC04NmI1LWEyMWJmNDIzZTkxYyIsInR5cCI6Ik9mZmxpbmUiLCJhenAiOiJlbGctb29iIiwic2Vzc2lvbl9zdGF0ZSI6IjBjYzQzNmI5LTdjMGMtNDhhMy1iMGZiLWQxZjUxMDViZDMxYSIsInNjb3BlIjoiRUxHLXByb2ZpbGUgcHJvZmlsZSBlbWFpbCBvZmZsaW5lX2FjY2VzcyJ9.ioYyBowIxvf71wejvQ1qkKxg6E0Kg4PU9QXFaKIJowY";
+		etp.getRefreshToken(refreshToken);
+		
+		
+		
 //		String srvId = "487";
 //		//String url = "https://accounts.google.com/ServiceLoginAuth";
 //		String url = "https://live.european-language-grid.eu/auth/realms/ELG/protocol/openid-connect/auth?client_id=react-client&redirect_uri=https%3A%2F%2Flive.european-language-grid.eu%2Fcatalogue%2F%23%2Fsearch%2FASR&state=ae0215c5-9da8-48f4-8c23-fd4a3403a78b&response_mode=fragment&response_type=code&scope=openid&nonce=387a852e-e9d8-4b33-8711-0b84423a88cc";
@@ -239,6 +248,58 @@ Document docCustomConn = connection.get();
 		return token;
 	}
 	
+	public String getRefreshToken(String refreshToken) {
+
+		try {
+			String LIVE_DOMAIN = "https://live.european-language-grid.eu";
+			String tokenUrl = LIVE_DOMAIN+"/auth/realms/ELG/protocol/openid-connect/token";
+//	        String sData = "{\"grant_type\": \"refresh_token\", \"client_id\": \"elg-oob\", \"refresh_token\": "+refreshToken+"}";
+//			String urlParameters  = "param1=data1&param2=data2&param3=data3";
+//			String urlParameters  = "grant_type=refresh_token&client_id=elg-oob&refresh_token=eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJlNTJmMmMxYi01N2Y1LTQxYjEtOGJkZS05MjA1OGFjZjQ1YjUifQ.eyJpYXQiOjE2MjQ0NTM5MDQsImp0aSI6ImNjMTVhZTlmLWJiNDAtNGQ1Zi04NTNhLTIyMGYyZjc1NzZjYSIsImlzcyI6Imh0dHBzOi8vbGl2ZS5ldXJvcGVhbi1sYW5ndWFnZS1ncmlkLmV1L2F1dGgvcmVhbG1zL0VMRyIsImF1ZCI6Imh0dHBzOi8vbGl2ZS5ldXJvcGVhbi1sYW5ndWFnZS1ncmlkLmV1L2F1dGgvcmVhbG1zL0VMRyIsInN1YiI6ImE1N2U3NGI3LTVjNGEtNGJjOC04NmI1LWEyMWJmNDIzZTkxYyIsInR5cCI6Ik9mZmxpbmUiLCJhenAiOiJlbGctb29iIiwic2Vzc2lvbl9zdGF0ZSI6IjBjYzQzNmI5LTdjMGMtNDhhMy1iMGZiLWQxZjUxMDViZDMxYSIsInNjb3BlIjoiRUxHLXByb2ZpbGUgcHJvZmlsZSBlbWFpbCBvZmZsaW5lX2FjY2VzcyJ9.ioYyBowIxvf71wejvQ1qkKxg6E0Kg4PU9QXFaKIJowY";
+			String urlParameters  = "grant_type=refresh_token&client_id=elg-oob&refresh_token=eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJlNTJmMmMxYi01N2Y1LTQxYjEtOGJkZS05MjA1OGFjZjQ1YjUifQ.eyJpYXQiOjE2MzMzNTM1NjUsImp0aSI6IjQxZWQ5NzRlLWExMzgtNDFiMi1iZmFlLWI3Y2M2ZjA2ZTY0MyIsImlzcyI6Imh0dHBzOi8vbGl2ZS5ldXJvcGVhbi1sYW5ndWFnZS1ncmlkLmV1L2F1dGgvcmVhbG1zL0VMRyIsImF1ZCI6Imh0dHBzOi8vbGl2ZS5ldXJvcGVhbi1sYW5ndWFnZS1ncmlkLmV1L2F1dGgvcmVhbG1zL0VMRyIsInN1YiI6ImE1N2U3NGI3LTVjNGEtNGJjOC04NmI1LWEyMWJmNDIzZTkxYyIsInR5cCI6Ik9mZmxpbmUiLCJhenAiOiJlbGctb29iIiwic2Vzc2lvbl9zdGF0ZSI6IjQ5MDAwZGMzLTE1NWQtNDI3NC04MzM5LTRlZGE0YTQzNmRjZCIsInNjb3BlIjoiRUxHLXByb2ZpbGUgcHJvZmlsZSBlbWFpbCBvZmZsaW5lX2FjY2VzcyJ9.TkDgLma1ogCn5WjAgCZqbAPSdKmrjcefc-SA1AgiDWQ";
+			byte[] postData = urlParameters.getBytes( StandardCharsets.UTF_8 );
+			int postDataLength = postData.length;
+			URL url = new URL( tokenUrl );
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();           
+			conn.setDoOutput(true);
+			conn.setInstanceFollowRedirects(false);
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded"); 
+			conn.setRequestProperty("charset", "utf-8");
+			conn.setRequestProperty("Content-Length", Integer.toString(postDataLength ));
+			conn.setUseCaches(false);
+			try(DataOutputStream wr = new DataOutputStream(conn.getOutputStream())) {
+				wr.write( postData );
+				wr.flush();
+				wr.close();
+			}
+			int responseCode = conn.getResponseCode();
+			System.out.println("RESPONSE: "+responseCode);
+			System.out.println("\nSending 'POST' request to URL : " + url);
+//			System.out.println("Post parameters : " + postParams);
+//			System.out.println("Response Code : " + responseCode);	
+			BufferedReader in =
+					new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			String inputLine;
+			StringBuffer response = new StringBuffer();
+	
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
+			in.close();
+			JSONObject json2 = new JSONObject(response.toString());
+//			System.out.println(json2.toString(1));
+//			System.out.println(response.toString());
+			if(json2.has("access_token")) {
+				return json2.getString("access_token");
+			}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	private WebDriver driver;
 
 	public void setup() {
@@ -383,5 +444,6 @@ Document docCustomConn = connection.get();
 	public void setCookies(List<String> cookies) {
 		this.cookies = cookies;
 	}
+
 
 }

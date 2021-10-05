@@ -39,7 +39,15 @@ public class WaitComponent extends WorkflowComponent{
 			throw e;
 		}
 	}
-		
+
+
+	@Override
+	public String executeComponentSynchronous(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
+		String msg = "Method not supported in WaitComponent.";
+		System.out.println(msg);
+		throw new WorkflowException(msg);
+	}
+
 	@Override
 	public String executeComponent(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
 		return executeComponent(document, priority, manager, outputCallback, statusCallback, persist, isContent);

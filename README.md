@@ -174,3 +174,11 @@ This section enumerates the list of things that are not yet implemented.
 * Allow the duplication of Controllers or allow the controllers to manage more than one call simultaneously.
 * Implement the storage of annotation/enrichment results in case they have to be persisted in the LKG (that could be implemented in the commons.NifManagement instead of here).
 * Include validation of JSON definition of components: Task, Controller, Template and WorkflowExecution
+
+
+
+# Run the Workflow Manager
+
+RabbitMQ Docker container has to be started with the following command
+
+docker run -d --hostname localhost --name some-rabbit -p 5672:5672 rabbitmq:latest

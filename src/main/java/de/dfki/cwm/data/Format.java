@@ -17,19 +17,23 @@ import de.dfki.cwm.exceptions.WorkflowException;
  * 
  */
 public enum Format {
+	WMD("application/workflowmanagerdocument"),
 	TURTLE("text/turtle"),
 	RDF("application/rdf"), 
 	JSONLD("application/ld+json"), 
 	TEXT("text/plain"), 
 	JSON("application/json"), 
+	JSONTOPIC("application/json+topic"), 
 	RDFXML("application/xml+rdf"), 
 	URI("uri"),
 	ALEPH("aleph"),
 	NIFv20("nif2.0"),
 	NIFv21("nif2.1"),
-	MP3("audio/mpeg",true),
+	MP3("audio/mpeg3",true),
 	WAV("audio/vnd.wav",true),
 	MULTIPART("multipart/form-data",true),
+	AUDIO("audio"),
+	NONE("none"),
 	UNK("unknown");
 	
 	String value;
@@ -81,7 +85,7 @@ public enum Format {
 	/**
 	 * Audio Formats 
 	 */
-	public static final String[] mp3 = {"mp3","audio/mpeg","mpeg","mpg","http://w3id.org/meta-share/omtd-share/mp3"};
+	public static final String[] mp3 = {"mp3","audio/mpeg","audio/mpeg3","mpeg","mpg","http://w3id.org/meta-share/omtd-share/mp3"};
 	public static final List<String> mp32 = Arrays.asList(mp3);
 
 	public static final String[] wav = {"wav","audio/vnd.wav","http://w3id.org/meta-share/omtd-share/wav"};

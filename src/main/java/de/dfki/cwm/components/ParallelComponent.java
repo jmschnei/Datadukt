@@ -57,6 +57,12 @@ public class ParallelComponent extends WorkflowComponent{
 	}
 
 	@Override
+	public String executeComponentSynchronous(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
+		System.out.println("Method not supported in Parallel Component.");
+		return null;
+	}
+
+	@Override
 	public String executeComponent(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
 //		input.setComponentsList(componentsList.subList(0, componentsList.size()));
 		if(output.startExecuteComponent(document, priority,manager,outputCallback, statusCallback, persist, isContent)!=null) {

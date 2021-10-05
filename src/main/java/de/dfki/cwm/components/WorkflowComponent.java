@@ -57,6 +57,8 @@ public abstract class WorkflowComponent {
 
 	public abstract String executeComponent(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException;
 
+	public abstract String executeComponentSynchronous(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException;
+
 	public static WorkflowComponent defineComponent(JSONObject object, DataManager dataManager, String workflowId) throws Exception {
 		try{
 			String type = object.getString("component_type");
@@ -69,6 +71,9 @@ public abstract class WorkflowComponent {
 			else if(type.equalsIgnoreCase("waitcombiner")){
 				return new WaitCombinerComponent(object, dataManager, workflowId);
 			}
+			else if(type.equalsIgnoreCase("empty")){
+				return new EmptyComponent(object, dataManager, workflowId);
+			}
 			else if(type.equalsIgnoreCase("rabbitmqrestapi")){
 				return new RabbitMQRestApiComponent(object, dataManager, workflowId);
 			}
@@ -77,6 +82,9 @@ public abstract class WorkflowComponent {
 //			}
 			else if(type.equalsIgnoreCase("parallelcomponent")){
 				return new ParallelComponent(object, workflowId, dataManager);
+			}
+			else if(type.equalsIgnoreCase("sequentialcomponent")){
+				return new SequentialComponent(object, workflowId, dataManager);
 			}
 			throw new Exception("component_type not supported: "+type);
 		}

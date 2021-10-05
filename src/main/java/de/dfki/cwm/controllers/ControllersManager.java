@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import de.dfki.cwm.communication.rabbitmq.RabbitMQManager;
 import de.dfki.cwm.exceptions.WorkflowException;
+import de.dfki.cwm.persistence.DataManager;
 import de.dfki.cwm.persistence.tasks.Task;
 
 @Component
@@ -24,6 +25,9 @@ public class ControllersManager {
 
 	Logger logger = Logger.getLogger(ControllersManager.class);
 
+	@Autowired
+	DataManager dataManager;
+	
 	@Autowired
 	RabbitMQManager rabbitMQManager;
 	
@@ -102,7 +106,8 @@ public class ControllersManager {
 					JSONObject json = new JSONObject(fileContent);
 					
 					try {
-						Controller c = Controller.constructController(json, rabbitMQManager);
+//						Controller c = Controller.constructController(json, rabbitMQManager);
+						Controller c = Controller.constructController(json, dataManager);
 						if(c!=null) {
 							controllerRepository.save(c);
 							conts.add(c);

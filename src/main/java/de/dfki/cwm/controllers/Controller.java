@@ -1,5 +1,7 @@
 package de.dfki.cwm.controllers;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -13,7 +15,9 @@ import com.rabbitmq.client.DeliverCallback;
 
 import de.dfki.cwm.communication.rabbitmq.RabbitMQManager;
 import de.dfki.cwm.controllers.restapi.RestApiController;
+import de.dfki.cwm.conversion.ELGNewParser;
 import de.dfki.cwm.conversion.ELGParser;
+import de.dfki.cwm.persistence.DataManager;
 
 /**
  * @author Julian Moreno Schneider jumo04@dfki.de
@@ -25,7 +29,7 @@ import de.dfki.cwm.conversion.ELGParser;
  *
  */
 @Entity
-public abstract class Controller extends Thread {
+public abstract class Controller extends Thread implements Serializable{
 
 	static Logger logger = Logger.getLogger(Controller.class);
 
@@ -39,7 +43,7 @@ public abstract class Controller extends Thread {
 	@Id
 	protected String controllerId;
 	protected String controllerName;
-//	String serviceId;
+	protected String serviceId;
 
 	@Column(columnDefinition="LONGVARCHAR")
 	protected String controllerDescription;
@@ -65,7 +69,7 @@ public abstract class Controller extends Thread {
 	public String outputFormat;
 	
 	@Transient
-	protected RabbitMQManager rabbitMQManager;
+	protected DataManager dataManager;
 
 	public Controller() {
 	}
@@ -73,7 +77,7 @@ public abstract class Controller extends Thread {
 	public Controller(String controllerId, String controllerName, String serviceId, String inputQueueNormal,
 			String inputQueuePriority, String outputQueueNormal, String outputQueuePriority,
 			String inputFormat, String outputFormat,
-			RabbitMQManager rabbitMQManager) {
+			DataManager dataManager) {
 		super();
 		this.controllerId = controllerId;
 		this.controllerName = controllerName;
@@ -83,13 +87,15 @@ public abstract class Controller extends Thread {
 		this.outputQueuePriority = outputQueuePriority;
 		this.inputFormat = inputFormat;
 		this.outputFormat = outputFormat;
-		this.rabbitMQManager = rabbitMQManager;
+		this.dataManager = dataManager;
 	}
 
-	public Controller(JSONObject json, RabbitMQManager rabbitMQManager) throws Exception {
+	public Controller(JSONObject json, DataManager dataManager) throws Exception {
 		super();
 		controllerName = json.getString("controllerName");
-//		serviceId = json.getString("serviceId");
+		if(json.has("serviceId")) {
+			serviceId = json.getString("serviceId");
+		}
 		controllerId = json.getString("controllerId");
 		JSONObject queues = json.getJSONObject("queues");
 		inputQueueNormal = queues.getString("nameInputNormal");
@@ -98,11 +104,11 @@ public abstract class Controller extends Thread {
 		outputQueuePriority = queues.getString("nameOutputPriority");
 		this.inputFormat = (json.has("input")) ? json.getJSONObject("input").getString("format") : "text";
 		this.outputFormat = (json.has("output")) ? json.getJSONObject("output").getString("format") : "QuratorDocument";
-		this.rabbitMQManager = rabbitMQManager;
+		this.dataManager = dataManager;
 	}
 
-	public Controller(String workflowString, RabbitMQManager rabbitMQManager) throws Exception {
-		this(new JSONObject(workflowString),rabbitMQManager);
+	public Controller(String workflowString, DataManager dataManager) throws Exception {
+		this(new JSONObject(workflowString),dataManager);
 	}
 
 	public String execute(String documentId, boolean priority, RabbitMQManager manager, String outputCallback, String statusCallback) throws Exception {
@@ -115,7 +121,7 @@ public abstract class Controller extends Thread {
 //        if(test) {
 //        	return;
 //        }
-        Channel channel = rabbitMQManager.getChannel();
+        Channel channel = dataManager.rabbitMQManager.getChannel();
         
         //TODO Hay que controlar que la cola de prioridad no se coma todos los recursos y la otra se quede cortada sin nada que hacer.
         
@@ -184,9 +190,9 @@ public abstract class Controller extends Thread {
 		return json;
 	}
 		
-	public void reestablishComponents(RabbitMQManager rabbitMQManager) {
+	public void reestablishComponents(DataManager dataManager) {
 		try {
-			this.rabbitMQManager = rabbitMQManager;
+			this.dataManager = dataManager;
 		}catch(Exception e) {
 			e.printStackTrace();
 			System.out.println("----------------------------");
@@ -243,7 +249,7 @@ public abstract class Controller extends Thread {
 		this.controllerName = controllerName;
 	}
 
-	public static Controller constructController(JSONObject json, RabbitMQManager rabbitMQManager2) throws Exception {
+	public static Controller constructController(JSONObject json, DataManager dataManager2) throws Exception {
 		String type = (json.has("connectionType")) ? json.getString("connectionType"): "null";
 		switch (type) {
 		case "":
@@ -251,11 +257,18 @@ public abstract class Controller extends Thread {
 			logger.error("Controller type is not defined in controller definition json object.");
 			break;
 		case "restapi":
-			return new RestApiController(json, rabbitMQManager2);
+			return new RestApiController(json, dataManager2);
 		case "elg_restapi":
-			String srvId = (json.has("serviceId")) ? json.getString("serviceId"): "null";
-			ELGParser ep = new ELGParser();
-			return ep.parseControllerFromELGId(srvId, rabbitMQManager2);
+//			String srvId = (json.has("serviceId")) ? json.getString("serviceId"): "null";
+			ELGNewParser ep = new ELGNewParser();
+			return ep.parseELGControllerFromJSON(json, dataManager2);
+			/**
+			 * TODO include here more construction types.
+			 */
+		case "elg_restapi_byid":
+//			String srvId = (json.has("serviceId")) ? json.getString("serviceId"): "null";
+			ELGParser ep2 = new ELGParser();
+			return ep2.parseControllerFromJSON(json, dataManager2);
 			/**
 			 * TODO include here more construction types.
 			 */

@@ -11,10 +11,9 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
-import de.dfki.cwm.controllers.Controller;
 import de.dfki.cwm.controllers.restapi.RestApiController;
-import de.qurator.commons.QuratorDocument;
-import de.qurator.commons.conversion.QuratorSerialization;
+import de.dfki.cwm.data.documents.WMDocument;
+import de.dfki.cwm.data.documents.conversion.WMSerialization;
 
 public class Test {
 
@@ -45,8 +44,8 @@ public class Test {
 		JSONObject json = new JSONObject(FileUtils.readFileToString(new File("src/main/resources/controllers/NERController.json")));
 		RestApiController c = new RestApiController(json, null);
 		
-		QuratorDocument qd = new QuratorDocument("The test to be processed is this one, and probably it can be annotated by Microsoft or Google and distributed to a company located in Berlin, which benefits Salvador Dali.");
-    	HttpRequest hrwb = c.controllerConnection.getRequest(QuratorSerialization.toRDF(qd, "TURTLE"),true,null);
+		WMDocument qd = new WMDocument("The test to be processed is this one, and probably it can be annotated by Microsoft or Google and distributed to a company located in Berlin, which benefits Salvador Dali.");
+    	HttpRequest hrwb = c.controllerConnection.getRequest(WMSerialization.toRDF(qd, "TURTLE"),true,null,null);
 //		hrwb = hrwb.queryString("documentURI", document);	
     	System.out.println(hrwb.getUrl());
     	System.out.println(new String(hrwb.getBody().getEntity().getContent().readAllBytes()));

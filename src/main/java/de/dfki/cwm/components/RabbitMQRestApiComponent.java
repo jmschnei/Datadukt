@@ -3,16 +3,27 @@ package de.dfki.cwm.components;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
+import org.apache.log4j.Logger;
 import org.json.JSONObject;
+
+import com.rabbitmq.client.DeliverCallback;
 
 import de.dfki.cwm.communication.messages.NIFMessageWithParameters;
 import de.dfki.cwm.communication.messages.NIFURLMessage;
 import de.dfki.cwm.communication.rabbitmq.RabbitMQManager;
+import de.dfki.cwm.data.documents.WMDocument;
+import de.dfki.cwm.data.documents.conversion.WMDeserialization;
+import de.dfki.cwm.data.documents.conversion.WMSerialization;
 import de.dfki.cwm.exceptions.WorkflowException;
 import de.dfki.cwm.persistence.DataManager;
 
 public class RabbitMQRestApiComponent extends WorkflowComponent{
+
+	// Logger object
+	Logger logger = Logger.getLogger(RabbitMQRestApiComponent.class);
 
 	RabbitMQManager rabbitMQManager;
 
@@ -77,7 +88,69 @@ public class RabbitMQRestApiComponent extends WorkflowComponent{
 	}
 
 	public void doWork(String message, boolean priority) {
-		System.out.println("Received Message in RabbitMQRest ["+controllerId+"]: "+message);
+//		System.out.println("Received Message in RabbitMQRest ["+controllerId+"]: "+message);
+		logger.info("Received Message in RabbitMQRest ["+controllerId+"]: "+message);
+	}
+
+	public String executeComponentSynchronous(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
+		NIFMessageWithParameters message = new NIFMessageWithParameters(document, workflowExecutionId, callbackQueueName, persist, isContent, parameters);
+		try{
+			rabbitMQManager.sendMessage(message, controllerId, priority, true);
+//			System.out.println("[RabbitMQRestAPI ["+workflowComponentName+"]] Executed correctly.");
+			logger.info("[Synchronous@RabbitMQRestAPI ["+workflowComponentName+"]] Executed correctly.");
+			
+	        final BlockingQueue<String> response = new ArrayBlockingQueue<>(1);
+
+			DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+				String receivedMessage = new String(delivery.getBody(), "UTF-8");
+//				System.out.println("[Synchronous RabbitMQRestAPI [\"+workflowComponentName+\"]] Received message: '" + receivedMessage + "'");
+				logger.info("[Synchronous@RabbitMQRestAPI ["+workflowComponentName+"]] Received message: '" + receivedMessage + "'");
+				try {
+					JSONObject json = new JSONObject(receivedMessage);
+					if(json.getString("workflowId").equalsIgnoreCase(this.workflowExecutionId)) {
+							String serviceId = json.getString("controllerId");
+							rabbitMQManager.getChannel().basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+							String status = json.getString("status");
+							if(status.equalsIgnoreCase("ERROR") || status.equalsIgnoreCase("EXCEPTION")) {
+				                response.offer("ERROR");
+								logger.error("[Synchronous@RabbitMQRestApiComponent] Result is ERROR or EXCEPTION");
+							}
+							else {
+								response.offer(json.getString("document"));
+							}
+					}
+					else {
+//						System.out.println("[Synchronous RabbitMQRestApiComponent] FALSE workflowID");
+						logger.warn("[Synchronous@RabbitMQRestApiComponent] FALSE workflowID");
+					}
+				}catch(Exception e) {
+					e.printStackTrace();
+				} finally {
+//					System.out.println(" [x] Done");
+//					rabbitMQManager.getChannel().basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+				}
+			};
+
+			String callbackQueueName = this.callbackQueueName;
+			rabbitMQManager.basicConsumeQueue(callbackQueueName, false, false, deliverCallback, null);
+	        String result = response.take();
+
+            WMDocument qd = null;
+            if(result.equalsIgnoreCase("ERROR")) {
+            	logger.error("There are no results from controller "+workflowComponentId+".");
+            	throw new Exception("There are no results from controller "+workflowComponentId+".");
+            }
+            else {
+            	qd = WMDeserialization.fromRDF(result, "TURTLE");
+            	String finalResult = WMSerialization.toRDF(qd, "TURTLE");
+    			logger.info("[RabbitMQRestAPI ["+workflowComponentName+"]] Executed correctly.");
+            	return finalResult;
+            }
+		}
+		catch(Exception e){
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	@Override
@@ -85,7 +158,8 @@ public class RabbitMQRestApiComponent extends WorkflowComponent{
 		NIFMessageWithParameters message = new NIFMessageWithParameters(document, workflowExecutionId, callbackQueueName, persist, isContent, parameters);
 		try{
 			rabbitMQManager.sendMessage(message, controllerId, priority, true);
-			System.out.println("[RabbitMQRestAPI ["+workflowComponentName+"]] Executed correctly.");
+//			System.out.println("[RabbitMQRestAPI ["+workflowComponentName+"]] Executed correctly.");
+			logger.info("[RabbitMQRestAPI ["+workflowComponentName+"]] Executed correctly.");
 		}
 		catch(Exception e){
 			e.printStackTrace();
@@ -126,7 +200,8 @@ public class RabbitMQRestApiComponent extends WorkflowComponent{
 			//			headers.put("longitude", -0.0905493);
 			//
 
-			System.out.println("[RabbitMQRestAPI ["+workflowComponentName+"]] Executed correctly.");
+//			System.out.println("[RabbitMQRestAPI ["+workflowComponentName+"]] Executed correctly.");
+			logger.info("[RabbitMQRestAPI ["+workflowComponentName+"]] Executed correctly.");
 		}
 		catch(Exception e){
 			e.printStackTrace();

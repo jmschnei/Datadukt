@@ -9,7 +9,10 @@ public class RestApiAuthorization {
 	
 	String user;
 	String password;
-	
+
+	String accessToken = null;
+	String refreshToken = null;
+
 	public RestApiAuthorization(String name, String type, String defaultValue, boolean required) {
 		super();
 		this.name = name;
@@ -22,7 +25,10 @@ public class RestApiAuthorization {
 			password = defaultValue.substring(defaultValue.indexOf(':')+1);
 		}
 		else if(name.equalsIgnoreCase("tokenauth")) {
-			user = defaultValue;
+			accessToken = defaultValue;
+		}
+		else if(name.equalsIgnoreCase("elgtokenauth")) {
+			refreshToken = defaultValue;
 		}
 	}
 
@@ -57,5 +63,22 @@ public class RestApiAuthorization {
 	public void setRequired(boolean required) {
 		this.required = required;
 	}
+
+	public String getAccessToken() {
+		return accessToken;
+	}
+
+	public void setAccessToken(String accessToken) {
+		this.accessToken = accessToken;
+	}
+
+	public String getRefreshToken() {
+		return refreshToken;
+	}
+
+	public void setRefreshToken(String refreshToken) {
+		this.refreshToken = refreshToken;
+	}
+	
 	
 }

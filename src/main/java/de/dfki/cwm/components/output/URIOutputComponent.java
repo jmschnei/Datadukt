@@ -16,6 +16,11 @@ public class URIOutputComponent extends OutputComponent {
 	}
 
 	@Override
+	public String executeComponentSynchronous(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
+		return executeComponent(document, parameters, priority, manager, outputCallback, statusCallback, persist, isContent);
+	}
+
+	@Override
 	public String executeComponent(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
 		try {
 			return document;

@@ -3,16 +3,17 @@ package de.dfki.cwm.components.input;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
 import de.dfki.cwm.components.WorkflowComponent;
 import de.dfki.cwm.data.Format;
 import de.dfki.cwm.data.Language;
+import de.dfki.cwm.data.documents.WMDocument;
+import de.dfki.cwm.data.documents.conversion.WMDeserialization;
+import de.dfki.cwm.data.documents.conversion.WMSerialization;
 import de.dfki.cwm.exceptions.WorkflowException;
 import de.dfki.cwm.persistence.DataManager;
-import de.qurator.commons.QuratorDocument;
-import de.qurator.commons.conversion.QuratorDeserialization;
-import de.qurator.commons.conversion.QuratorSerialization;
 
 /**
  * @author julianmorenoschneider
@@ -23,6 +24,9 @@ import de.qurator.commons.conversion.QuratorSerialization;
  * 
  */
 public class ConversionInputComponent extends InputComponent {
+
+	// Logger object
+	Logger logger = Logger.getLogger(ConversionInputComponent.class);
 
 	Format inputFormat;
 	Language language;
@@ -36,22 +40,27 @@ public class ConversionInputComponent extends InputComponent {
 	}
 
 	@Override
+	public String executeComponentSynchronous(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
+		return executeComponent(document, parameters, priority, manager, outputCallback, statusCallback, persist, isContent);
+	}
+
+	@Override
 	public String executeComponent(String content, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
 		try {
-			QuratorDocument qd = null;
+			WMDocument qd = null;
 			switch (inputFormat) {
 			case TEXT:
-				qd = new QuratorDocument(content);
+				qd = new WMDocument(content);
 				break;
 			case TURTLE:
 			case WAV:
 			case MP3:
 				return content;
 			case RDF:
-				qd = QuratorDeserialization.fromRDF(content, inputFormat.toString());
+				qd = WMDeserialization.fromRDF(content, inputFormat.toString());
 				break;
 			case JSONLD:
-				qd = QuratorDeserialization.fromJSONLD(content);
+				qd = WMDeserialization.fromJSONLD(content);
 				break;
 				
 //			case JSON:
@@ -65,7 +74,7 @@ public class ConversionInputComponent extends InputComponent {
 			default:
 				throw new WorkflowException("The INPUT FORMAT ["+inputFormat+"] is not supported.");
 			}
-			return QuratorSerialization.toRDF(qd, "TURTLE");
+			return WMSerialization.toRDF(qd, "TURTLE");
 		}
 		catch(Exception e) {
 			e.printStackTrace();

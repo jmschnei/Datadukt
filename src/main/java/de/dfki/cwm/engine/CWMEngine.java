@@ -23,8 +23,8 @@ import org.springframework.stereotype.Component;
 
 import de.dfki.cwm.communication.rabbitmq.RabbitMQManager;
 import de.dfki.cwm.controllers.Controller;
-import de.dfki.cwm.controllers.ControllerRepository;
 import de.dfki.cwm.controllers.ControllersManager;
+import de.dfki.cwm.data.documents.WMDocument;
 import de.dfki.cwm.exceptions.WorkflowException;
 import de.dfki.cwm.persistence.DataManager;
 import de.dfki.cwm.persistence.IdentifierGenerator;
@@ -33,9 +33,10 @@ import de.dfki.cwm.persistence.tasks.Task;
 import de.dfki.cwm.persistence.tasks.TaskManager;
 import de.dfki.cwm.persistence.workflowexecutions.WorkflowExecution;
 import de.dfki.cwm.persistence.workflowexecutions.WorkflowExecutionManager;
+import de.dfki.cwm.persistence.workflowinstances.WorkflowInstance;
+import de.dfki.cwm.persistence.workflowinstances.WorkflowInstanceManager;
 import de.dfki.cwm.persistence.workflowtemplates.WorkflowTemplate;
 import de.dfki.cwm.persistence.workflowtemplates.WorkflowTemplateManager;
-import de.qurator.commons.QuratorDocument;
 
 /**
  * @author Julian Moreno Schneider julian.moreno_schneider@dfki.de
@@ -57,7 +58,7 @@ public class CWMEngine {
 	String tasksPath = "tasks";
 	@Value( "${workflowmanager.templates_path}" )
 	String workflowTemplatesPath = "templates";
-
+	
 	@Autowired
 	DataManager dataManager;
 
@@ -81,6 +82,9 @@ public class CWMEngine {
 
     @Autowired
     WorkflowExecutionManager workflowExecutionManager;
+    
+    @Autowired
+    WorkflowInstanceManager workflowInstanceManager;
     
     boolean started = false;
     
@@ -219,18 +223,33 @@ public class CWMEngine {
 		return obj;
 	}
 
-	public Object executeWorkflow(QuratorDocument qd, String workflowExecutionId, boolean priority) throws Exception {
+	public Object executeWorkflow(WMDocument qd, String workflowExecutionId, boolean priority) throws Exception {
 		WorkflowExecution we = workflowExecutionManager.findOneByWorkflowExecutionId(workflowExecutionId);
 		if(we==null){
 			String msg = String.format("The workflow \"%s\" does not exist.",workflowExecutionId);
         	throw new Exception(msg);
 		}
-		Object obj = we.execute(qd, priority, dataManager);
+		/**
+		 * TODO Generate a new WorkflowExecution, so that queues does not fail.
+		 */
+		System.out.println(we.getJSONRepresentation());
+		String weId_new = we.getWorkflowExecutionId();
+		weId_new = weId_new + "_" + (new Date()).getTime();
+		createWorkflowExecution(we.getWorkflowExecutionDescription(), weId_new);
+		WorkflowExecution we_new = workflowExecutionManager.findOneByWorkflowExecutionId(weId_new);
+		if(we_new==null){
+			String msg = String.format("The workflow \"%s\" does not exist.",weId_new);
+        	throw new Exception(msg);
+		}
+		Object obj = we_new.execute(qd, priority, dataManager);
 		return obj;
 	}
 
 	public String getWorkflowExecutionOutput(String workflowExecutionId, String contentTypeHeader, boolean keepWaiting) throws Exception{
 		WorkflowExecution wfe = workflowExecutionManager.findOneByWorkflowExecutionId(workflowExecutionId);
+		if(wfe==null) {
+			throw new Exception("WorkflowExecution ID does not exist.");
+		}
 		if(keepWaiting) {
 			boolean done=false;
 			while(!done) {
@@ -260,29 +279,134 @@ public class CWMEngine {
 	}
 
 	/************************************************
+	 * Methods related to the management of Workflow Instances.
+	 ************************************************/
+
+	public JSONArray listWorkflowInstances(String workflowInstanceId) throws Exception {
+		try {
+			JSONArray workflowInstances = new JSONArray();
+			List<WorkflowInstance> workflowsList = listWorkflowInstancesObject(workflowInstanceId);
+			for (WorkflowInstance wf : workflowsList) {
+				workflowInstances.put(wf.getJSONRepresentation());
+			}
+			return workflowInstances;
+		}
+		catch(Exception e){
+			logger.error(e.getMessage());
+			throw e;
+		}
+	}
+	
+	public List<WorkflowInstance> listWorkflowInstancesObject(String WorkflowInstanceId) throws Exception {
+		try {
+			List<WorkflowInstance> workflows = new LinkedList<WorkflowInstance>();
+			if(WorkflowInstanceId==null || WorkflowInstanceId.equalsIgnoreCase("")) {
+				workflows = workflowInstanceManager.findAll();
+			}
+			else {
+				WorkflowInstance w = workflowInstanceManager.findOneByWorkflowInstanceId(WorkflowInstanceId);
+				if(w!=null) {
+					workflows.add(w);
+				}
+				else {
+					System.out.println("Adding a null");
+				}
+			}
+			return workflows;
+		}
+		catch(Exception e){
+			logger.error(e.getMessage());
+			throw e;
+		}
+	}
+	
+	public String createWorkflowInstance(String postBody, String workflowInstanceId) throws JSONException,WorkflowException,Exception {
+		JSONObject json = new JSONObject(postBody);
+		return createWorkflowInstance(json, workflowInstanceId);
+	}
+
+	public String createWorkflowInstance(JSONObject json, String workflowInstanceId) throws JSONException,WorkflowException,Exception {
+		if(workflowInstanceId==null || workflowInstanceId.equalsIgnoreCase("")) {
+			workflowInstanceId = (json.has("workflowInstanceId"))?json.getString("workflowInstanceId"):IdentifierGenerator.createWorkflowInstanceId();
+		}
+		else {
+			WorkflowInstance wfe = workflowInstanceManager.findOneByWorkflowInstanceId(workflowInstanceId);
+			if(wfe!=null) {
+				workflowInstanceId += "_"+(new Date()).getTime();
+			}
+		}
+		json.put("workflowInstanceId", workflowInstanceId);
+		
+		String workflowTemplateId = json.getString("workflowTemplateId");
+		WorkflowTemplate wt = workflowTemplateManager.findOneByWorkflowTemplateId(workflowTemplateId);
+		if(wt==null) {
+			throw new Exception("The specified workflow Template does not exist. Request [GET] /templates to get a complete list of available workflow templates.");
+		}
+//		System.out.println(wt.getWorkflowDescription());
+		WorkflowInstance new_wf = new WorkflowInstance(json, dataManager, wt);
+//		System.out.println("WorkflowInstanceId_3: "+new_wf.WorkflowInstanceId);
+//		System.out.println(new_wf.getJSONRepresentation().toString(1));
+		new_wf = workflowInstanceManager.save(new_wf);
+//		System.out.println("WorkflowInstanceId_4: "+new_wf.WorkflowInstanceId);
+//		System.out.println(new_wf.getJSONRepresentation().toString(1));
+//		rabbitMQManager.defineWorkflow(new_wf);
+		return workflowInstanceId;
+	}
+
+	public boolean deleteWorkflowInstance(String workflowInstanceId) throws Exception{
+		try{
+			WorkflowInstance wt = workflowInstanceManager.findOneByWorkflowInstanceId(workflowInstanceId);
+			if(wt==null) {
+				return false;
+			}
+			else {
+				workflowInstanceManager.deleteByWorkflowInstanceId(workflowInstanceId);
+				//workflowDAO.deleteByWorkflowId(workflowTemplateId);
+				return true;
+			}
+		}
+		catch(Exception e){
+//			e.printStackTrace();
+			throw e;
+		}
+	}
+
+
+	/************************************************
 	 * Methods related to the management of Workflow Executions.
 	 ************************************************/
 
 	public JSONArray listWorkflowExecutions(String workflowExecutionId) throws Exception {
 		try {
 			JSONArray workflowExecutions = new JSONArray();
-			List<WorkflowExecution> workflowsList = new LinkedList<WorkflowExecution>();
+			List<WorkflowExecution> workflowsList = listWorkflowExecutionsObject(workflowExecutionId);
+			for (WorkflowExecution wf : workflowsList) {
+				workflowExecutions.put(wf.getJSONRepresentation());
+			}
+			return workflowExecutions;
+		}
+		catch(Exception e){
+			logger.error(e.getMessage());
+			throw e;
+		}
+	}
+	
+	public List<WorkflowExecution> listWorkflowExecutionsObject(String workflowExecutionId) throws Exception {
+		try {
+			List<WorkflowExecution> workflows = new LinkedList<WorkflowExecution>();
 			if(workflowExecutionId==null || workflowExecutionId.equalsIgnoreCase("")) {
-				workflowsList = workflowExecutionManager.findAll();
+				workflows = workflowExecutionManager.findAll();
 			}
 			else {
 				WorkflowExecution w = workflowExecutionManager.findOneByWorkflowExecutionId(workflowExecutionId);
 				if(w!=null) {
-					workflowsList.add(w);
+					workflows.add(w);
 				}
 				else {
 					System.out.println("Adding a null");
 				}
 			}
-			for (WorkflowExecution wf : workflowsList) {
-				workflowExecutions.put(wf.getJSONRepresentation());
-			}
-			return workflowExecutions;
+			return workflows;
 		}
 		catch(Exception e){
 			logger.error(e.getMessage());
@@ -296,15 +420,8 @@ public class CWMEngine {
 	}
 
 	public String createWorkflowExecution(JSONObject json, String workflowExecutionId) throws JSONException,WorkflowException,Exception {
-//		System.out.println(json.toString(1));
-//		System.out.println("WorkflowExecutionId_1: "+workflowExecutionId);
 		if(workflowExecutionId==null || workflowExecutionId.equalsIgnoreCase("")) {
-			if(json.has("workflowExecutionId")) {
-				workflowExecutionId = json.getString("workflowExecutionId");
-			}
-			else {
-				workflowExecutionId = IdentifierGenerator.createWorkflowExecutionId();
-			}
+			workflowExecutionId = (json.has("workflowExecutionId"))?json.getString("workflowExecutionId"):IdentifierGenerator.createWorkflowExecutionId();
 		}
 		else {
 			WorkflowExecution wfe = workflowExecutionManager.findOneByWorkflowExecutionId(workflowExecutionId);
@@ -312,7 +429,6 @@ public class CWMEngine {
 				workflowExecutionId += "_"+(new Date()).getTime();
 			}
 		}
-//		System.out.println("WorkflowExecutionId_2: "+workflowExecutionId);
 		json.put("workflowExecutionId", workflowExecutionId);
 		
 		String workflowTemplateId = json.getString("workflowTemplateId");
@@ -320,7 +436,7 @@ public class CWMEngine {
 		if(wt==null) {
 			throw new Exception("The specified workflow Template does not exist. Request [GET] /templates to get a complete list of available workflow templates.");
 		}
-		
+//		System.out.println(wt.getWorkflowDescription());
 		WorkflowExecution new_wf = new WorkflowExecution(json, dataManager, wt);
 //		System.out.println("WorkflowExecutionId_3: "+new_wf.workflowExecutionId);
 //		System.out.println(new_wf.getJSONRepresentation().toString(1));
@@ -356,18 +472,29 @@ public class CWMEngine {
 	public JSONArray listWorkflowTemplates(String workflowTemplateId) throws Exception {
 		try {
 			JSONArray workflowTemplates = new JSONArray();
-			List<WorkflowTemplate> workflowsList = new LinkedList<WorkflowTemplate>();
-			if(workflowTemplateId==null || workflowTemplateId.equalsIgnoreCase("")) {
-				workflowsList = workflowTemplateManager.findAll();
-			}
-			else {
-				WorkflowTemplate w = workflowTemplateManager.findOneByWorkflowTemplateId(workflowTemplateId);
-				workflowsList.add(w);
-			}
+			List<WorkflowTemplate> workflowsList = listWorkflowTemplatesObject(workflowTemplateId);
 			for (WorkflowTemplate wf : workflowsList) {
 				workflowTemplates.put(wf.getJSONRepresentation());
 			}
 			return workflowTemplates;
+		}
+		catch(Exception e){
+			logger.error(e.getMessage());
+			throw e;
+		}
+	}
+	
+	public List<WorkflowTemplate> listWorkflowTemplatesObject(String workflowTemplateId) throws Exception {
+		try {
+			List<WorkflowTemplate> workflows = new LinkedList<WorkflowTemplate>();
+			if(workflowTemplateId==null || workflowTemplateId.equalsIgnoreCase("")) {
+				workflows = workflowTemplateManager.findAll();
+			}
+			else {
+				WorkflowTemplate w = workflowTemplateManager.findOneByWorkflowTemplateId(workflowTemplateId);
+				workflows.add(w);
+			}
+			return workflows;
 		}
 		catch(Exception e){
 			logger.error(e.getMessage());
@@ -510,6 +637,29 @@ public class CWMEngine {
 		}
 	}
 	
+	public List<Controller> listControllersObject(String controllerId) throws Exception {
+		try {
+			List<Controller> controllers = new LinkedList<Controller>();
+			if(controllerId==null || controllerId.equalsIgnoreCase("")) {
+				controllers = controllersManager.findAll();
+			}
+			else {
+				Controller c = controllersManager.findOneByControllerId(controllerId);
+				if(c!=null) {
+					controllers.add(c);
+				}
+				else {
+					System.out.println("Adding a null in controllers list.");
+				}
+			}
+			return controllers;
+		}
+		catch(Exception e){
+			logger.error(e.getMessage());
+			throw e;
+		}
+	}
+	
 	public String createController(String postBody, String controllerId) throws JSONException,WorkflowException,Exception {
 		JSONObject json = new JSONObject(postBody);
 		if(controllerId==null || controllerId.equalsIgnoreCase("")) {
@@ -523,7 +673,7 @@ public class CWMEngine {
 		else {
 		}
 		json.put("controllerId", controllerId);
-		Controller new_wf = Controller.constructController(json, rabbitMQManager);
+		Controller new_wf = Controller.constructController(json, dataManager);
 		new_wf = controllersManager.save(new_wf);
 //		TODO
 //		rabbitMQManager.defineWorkflow(new_wf);

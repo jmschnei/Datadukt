@@ -58,6 +58,7 @@ public abstract class InputComponent extends WorkflowComponent{
 				return new EmptyInputComponent(inFormat);
 			}
 		case RDF:
+			return new EmptyInputComponent(inFormat);
 		case JSON:
 		case JSONLD:
 		case RDFXML:
@@ -65,6 +66,7 @@ public abstract class InputComponent extends WorkflowComponent{
 		case MP3:
 			return new ConversionInputComponent(inFormat, language);
 		case URI:
+		case NONE:
 			return new EmptyInputComponent(inFormat);
 		default:
 			throw new Exception("InputFormat not supported. Value must be: JSON, RDF, JSONLD, RDFXML or URI.");

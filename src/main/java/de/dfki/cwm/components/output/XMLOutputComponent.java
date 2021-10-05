@@ -6,11 +6,11 @@ import java.util.List;
 import org.json.JSONObject;
 
 import de.dfki.cwm.components.WorkflowComponent;
+import de.dfki.cwm.data.documents.BaseAnnotation;
+import de.dfki.cwm.data.documents.WMDocument;
+import de.dfki.cwm.data.documents.conversion.WMDeserialization;
 import de.dfki.cwm.exceptions.WorkflowException;
 import de.dfki.cwm.persistence.DataManager;
-import de.qurator.commons.BaseAnnotation;
-import de.qurator.commons.QuratorDocument;
-import de.qurator.commons.conversion.QuratorDeserialization;
 
 public class XMLOutputComponent extends OutputComponent {
 
@@ -28,6 +28,12 @@ public class XMLOutputComponent extends OutputComponent {
 		}		
 	}
 
+
+	@Override
+	public String executeComponentSynchronous(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
+		return executeComponent(document, parameters, priority, manager, outputCallback, statusCallback, persist, isContent);
+	}
+
 	@Override
 	public String executeComponent(String document, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException {
 		//Annotate the NIF text with the annotations.
@@ -37,7 +43,7 @@ public class XMLOutputComponent extends OutputComponent {
 		String annotatedContent = document;
 		try{
 			String high = "";
-			QuratorDocument qd = QuratorDeserialization.fromRDF(document, "TURTLE");
+			WMDocument qd = WMDeserialization.fromRDF(document, "TURTLE");
 			
 			String anno = qd.getText();
 			//Get all the annotated information that we want to use for highlighting. 

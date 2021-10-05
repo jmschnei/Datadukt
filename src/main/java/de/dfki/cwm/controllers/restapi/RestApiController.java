@@ -3,6 +3,7 @@ package de.dfki.cwm.controllers.restapi;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -15,11 +16,13 @@ import de.dfki.cwm.communication.messages.ProcessingResultMessage;
 import de.dfki.cwm.communication.rabbitmq.RabbitMQManager;
 import de.dfki.cwm.controllers.Controller;
 import de.dfki.cwm.conversion.ELGParser;
-import de.qurator.commons.QuratorDocument;
-import de.qurator.commons.conversion.Conversion;
-import de.qurator.commons.conversion.Format;
-import de.qurator.commons.conversion.QuratorDeserialization;
-import de.qurator.commons.conversion.QuratorSerialization;
+import de.dfki.cwm.data.Format;
+import de.dfki.cwm.data.documents.WMDocument;
+import de.dfki.cwm.data.documents.conversion.Conversion;
+import de.dfki.cwm.data.documents.conversion.WMDeserialization;
+import de.dfki.cwm.data.documents.conversion.WMSerialization;
+import de.dfki.cwm.persistence.DataManager;
+import de.dfki.cwm.storage.FileStorage;
 
 /**
  * @author Julian Moreno Schneider jumo04@dfki.de
@@ -33,6 +36,7 @@ import de.qurator.commons.conversion.QuratorSerialization;
 @Entity
 public class RestApiController extends Controller {
 
+	@Transient
 	static Logger logger = Logger.getLogger(RestApiController.class);
 
 //	@OneToMany(cascade=CascadeType.PERSIST)
@@ -57,20 +61,20 @@ public class RestApiController extends Controller {
 			String inputQueuePriority, String outputQueueNormal, String outputQueuePriority,
 			RestApiConnection controllerConnection, 
 			String inputFormat, String outputFormat,
-			RabbitMQManager rabbitMQManager, String exchangeName,
+			DataManager dataManager, String exchangeName,
 			String routingKey) {
-		super(controllerId,controllerName,serviceId,inputQueueNormal,inputQueuePriority,outputQueueNormal,outputQueuePriority,inputFormat,outputFormat,rabbitMQManager);
+		super(controllerId,controllerName,serviceId,inputQueueNormal,inputQueuePriority,outputQueueNormal,outputQueuePriority,inputFormat,outputFormat,dataManager);
 		this.controllerConnection = controllerConnection;
 	}
 
-	public RestApiController(JSONObject json, RabbitMQManager rabbitMQManager) throws Exception {
-		super(json,rabbitMQManager);
+	public RestApiController(JSONObject json, DataManager dataManager) throws Exception {
+		super(json,dataManager);
 		JSONObject connection = json.getJSONObject("connection");
 		controllerConnection = new RestApiConnection(connection);
 	}
 
-	public RestApiController(String workflowString, RabbitMQManager rabbitMQManager) throws Exception {
-		this(new JSONObject(workflowString),rabbitMQManager);
+	public RestApiController(String workflowString, DataManager dataManager) throws Exception {
+		this(new JSONObject(workflowString),dataManager);
 	}
 
 	public String execute(String documentId, boolean priority, RabbitMQManager manager, String outputCallback, String statusCallback) throws Exception {
@@ -128,10 +132,10 @@ public class RestApiController extends Controller {
 		String status = "ERROR";
 		String result = "ERROR";
     	JSONObject jsonObject = new JSONObject(message);
-    	System.out.println("MESSAGE RECEIVED IN CONTROLLER "+controllerId+": "+message);
+//    	System.out.println("MESSAGE RECEIVED IN CONTROLLER "+controllerId+": "+message);
     	String document = jsonObject.getString("document");
-    	System.out.println("DOCUMENT:");
-    	System.out.println(document);
+//    	System.out.println("DOCUMENT:");
+//    	System.out.println(document);
     	String workflowExecutionId = jsonObject.getString("workflowId");
     	String callbackQueue = jsonObject.getString("callback");
     	boolean persist = jsonObject.getBoolean("persist");
@@ -153,14 +157,16 @@ public class RestApiController extends Controller {
 ////				.queryString("overwrite", true)
 ////				.asString();
 			
-			QuratorDocument qd = QuratorDeserialization.fromRDF(document, "TTL");
+			WMDocument qd = WMDeserialization.fromRDF(document, "TTL");
 			Conversion c = new Conversion();
 			Format inputF = Format.getFormat(inputFormat);
-			String content = c.toFormat(qd, inputF);
-	    	HttpRequest hrwb = controllerConnection.getRequest(content,isContent,parameters);
+			Object content = c.toFormat(qd, inputF);
+//			System.out.println("CONTENT: " + content);
+			FileStorage fileStorage = dataManager.fileStorage;
+	    	HttpRequest hrwb = controllerConnection.getRequest(content,isContent,parameters,fileStorage);
 //    		hrwb = hrwb.queryString("documentURI", document);
 	    	
-	    	System.out.println("DEBUG: WE are requesting: "+hrwb.toString());
+//	    	System.out.println("DEBUG: WE are requesting: "+hrwb.toString());
 	    	
 	    	HttpResponse<String> response371 = hrwb.asString();
 	    	
@@ -168,9 +174,7 @@ public class RestApiController extends Controller {
 	    	
 			if(response371.getStatus()==200) {
 				status = "CORRECT";
-				
-				System.out.println("RESPONSE BODY IN CONTROLLER "+controllerId+": "+response371.getBody());
-				
+//				System.out.println("RESPONSE BODY IN CONTROLLER "+controllerId+": "+response371.getBody());				
 				/**
 				 * Here comes the conversion of the output.
 				 */
@@ -184,7 +188,7 @@ public class RestApiController extends Controller {
 //				System.out.println("-----------------------------------");
 //				System.out.println("-----------------------------------");
 //				System.out.println("-----------------------------------");
-				QuratorDocument qdout = c.fromString(qd,response371.getBody(), outputF);
+				WMDocument qdout = c.fromString(qd,response371.getBody(), outputF);
 				
 //				System.out.println(qdout.toRDF("TURTLE"));
 //				System.out.println("-----------------------------------");
@@ -195,28 +199,32 @@ public class RestApiController extends Controller {
 //					NIFAdquirer.saveNIFDocumentInLKGManager(response371.getBody(), "text/turtle");
 				}
 				if(isContent) {
-					result = QuratorSerialization.toRDF(qdout,"TTL");//response371.getBody();
+					result = WMSerialization.toRDF(qdout,"TTL");//response371.getBody();
 				}
 				else {
 					result = document;
 				}
-				System.out.println("[Controller ["+controllerName+"]] Executed correctly with output: "+result);
-				System.out.println("[Controller ["+controllerName+"]] Executed correctly.");
+//				System.out.println("[Controller ["+controllerName+"]] Executed correctly with output: "+result);
+//				System.out.println("[Controller ["+controllerName+"]] Executed correctly.");
+				logger.info("[Controller ["+controllerName+"]] Executed correctly.");
+
 			}
 			else {
 				logger.error(response371.getBody());
 				result = response371.getBody();
-				System.out.println("[Controller ["+controllerName+"]] Executed with error: "+result);
+//				System.out.println("[Controller ["+controllerName+"]] Executed with error: "+result);
+				logger.error("[Controller ["+controllerName+"]] Executed with error: "+result);
 			}
 		}
 		catch(Exception e){
 			e.printStackTrace();
 			result = e.getMessage();
-			System.out.println("[Controller ["+controllerName+"]] Executed with Exception: "+result);
+//			System.out.println("[Controller ["+controllerName+"]] Executed with Exception: "+result);
+			logger.error("[Controller ["+controllerName+"]] Executed with Exception: "+result);
 		}
 		ProcessingResultMessage prs = new ProcessingResultMessage(result, status, controllerId, workflowExecutionId);
 //		System.out.println("????????--"+prs.toString());
-		rabbitMQManager.sendMessageToQueue(prs, callbackQueue, priority, false);
+		dataManager.rabbitMQManager.sendMessageToQueue(prs, callbackQueue, priority, false);
 	}
 
     public void testFunctionality(String message, boolean priority) throws Exception {
@@ -247,12 +255,25 @@ public class RestApiController extends Controller {
 ////				.queryString("analyzers", "standard;whitespace")
 ////				.queryString("overwrite", true)
 ////				.asString();
-			
-			QuratorDocument qd = QuratorDeserialization.fromRDF(document, "TTL");
+			System.out.println("-----------------------------");
+			System.out.println("-----------------------------");
+			System.out.println("-----------------------------");
+			System.out.println("DEBUG: "+document);
+			System.out.println("-----------------------------");
+			System.out.println("-----------------------------");
+			System.out.println("-----------------------------");
+			WMDocument qd = WMDeserialization.fromRDF(document, "TTL");
 			Conversion c = new Conversion();
 			Format inputF = Format.getFormat(inputFormat);
-			String content = c.toFormat(qd, inputF);
-	    	HttpRequest hrwb = controllerConnection.getRequest(content,isContent,parameters);
+			Object content = c.toFormat(qd, inputF);
+			
+			System.out.println(content);
+			System.out.println("-----------------------------");
+			System.out.println("-----------------------------");
+			System.out.println("-----------------------------");
+			
+			FileStorage fileStorage = dataManager.fileStorage;
+	    	HttpRequest hrwb = controllerConnection.getRequest(content,isContent,parameters,fileStorage);
 //    		hrwb = hrwb.queryString("documentURI", document);
 	    	
 	    	System.out.println("DEBUG: WE are requesting: "+hrwb.toString());
@@ -270,13 +291,13 @@ public class RestApiController extends Controller {
 				 * Here comes the conversion of the output.
 				 */
 				Format outputF = Format.getFormat(outputFormat);
-				QuratorDocument qdout = c.fromString(qd,response371.getBody(), outputF);
+				WMDocument qdout = c.fromString(qd,response371.getBody(), outputF);
 				
 				if(persist) {
 //					NIFAdquirer.saveNIFDocumentInLKGManager(response371.getBody(), "text/turtle");
 				}
 				if(isContent) {
-					result = QuratorSerialization.toRDF(qdout,"TTL");//response371.getBody();
+					result = WMSerialization.toRDF(qdout,"TTL");//response371.getBody();
 				}
 				else {
 					result = document;
@@ -287,7 +308,7 @@ public class RestApiController extends Controller {
 			else {
 				logger.error(response371.getBody());
 				result = response371.getBody();
-				System.out.println("[Controller ["+controllerName+"]] Executed with error: "+result);
+				System.out.println("[Controller ["+controllerName+"]] Executed with error "+response371.getStatus()+": "+result);
 			}
 		}
 		catch(Exception e){
@@ -297,7 +318,7 @@ public class RestApiController extends Controller {
 		}
 		ProcessingResultMessage prs = new ProcessingResultMessage(result, status, controllerId, workflowExecutionId);
 //		System.out.println("????????--"+prs.toString());
-		rabbitMQManager.sendMessageToQueue(prs, callbackQueue, priority, false);
+		dataManager.rabbitMQManager.sendMessageToQueue(prs, callbackQueue, priority, false);
 
 //		try{
 //	    	JSONObject jsonObject = new JSONObject(message);
@@ -400,15 +421,17 @@ public class RestApiController extends Controller {
 				"@prefix foaf:  <http://xmlns.com/foaf/0.1/> .\r\n" + 
 				"\r\n" + 
 				"<http://qurator-project.de/res/bad99fbe>\r\n" + 
-				"        a               qont:QuratorDocument , nif:OffsetBasedString , nif:Context ;\r\n" + 
-				"        lkg:metadata    [ eli:id_local  \"bad99fbe\" ;\r\n" + 
-				"                          dct:language  \"en\"\r\n" + 
-				"                        ] ;\r\n" + 
+				"        a               qont:WMDocument , nif:OffsetBasedString , nif:Context ;\r\n" + 
+				"        qont:metadata    [ eli:id_local  \"bad99fbe\" ;\r\n" + 
+				"                          dct:language  \"en\" ;\r\n" + 
+				"                          qont:WMDocumentId  \"1600785715153\"\r\n" + 
+				"							] ;\r\n" + 
 				"        nif:beginIndex  \"0\"^^xsd:nonNegativeInteger ;\r\n" + 
 				"        nif:endIndex    \"175\"^^xsd:nonNegativeInteger ;\r\n" + 
 				"        nif:isString    \"In Sachsen und Brandenburg hat die CDU bei den Wahlen stark verloren, vor allem an die AfD. Schleswig-Holsteins Ministerpräsident Daniel Günther spricht von einem Alarmsignal.\" .\r\n" + 
-				"";
-		QuratorDocument qd = QuratorDeserialization.fromRDF(document, "TTL");
+				"";		
+		
+		WMDocument qd = WMDeserialization.fromRDF(document, "TTL");
 //		Conversion c = new Conversion();
 //		Format inputF = Format.getFormat(inputFormat);
 //		String content = c.toFormat(qd, inputF);
@@ -419,12 +442,14 @@ public class RestApiController extends Controller {
 		ELGParser ep = new ELGParser();
 		Controller rac = ep.parseControllerFromELGId(srvId, null);
 
+		System.out.println(rac.getJSONRepresentation().toString(2));
+		
 		JSONObject obj = new JSONObject();
 		obj.put("document", qd.toRDF("TURTLE"));
 		obj.put("workflowId", "example101");
 		obj.put("callback", "null");
 		obj.put("persist", false);
-		obj.put("isContent", true);		
+		obj.put("isContent", true);
 		rac.testFunctionality(obj.toString(), false);
 		
 	}

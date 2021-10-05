@@ -11,6 +11,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
@@ -31,8 +32,15 @@ import de.dfki.cwm.persistence.Workflow;
 @Component
 public class RabbitMQManager implements CommunicationManager{
 
-	Logger logger = Logger.getLogger(RabbitMQManager.class);
+	@Autowired
+	private ApplicationContext context;
 
+	Logger logger = Logger.getLogger(RabbitMQManager.class);
+	
+	public ApplicationContext getContext() {
+		return context;
+	}
+	
 //	@Value( "${rabbitmq.username}" )
 //	String userName;
 //	@Value( "${rabbitmq.password}" )
@@ -466,6 +474,12 @@ public class RabbitMQManager implements CommunicationManager{
 		rabbitMQChannel.basicConsume(TASK_QUEUE_NAME, false, deliverCallback, consumerTag -> { });
 	}
 
+//	public void basicConsumeQueueSynchronous(String queueName, boolean priority, boolean input, 
+//			DeliverCallback deliverCallback, ConsumerShutdownSignalCallback cssc) throws Exception {
+//		//		System.out.println("Consuming "+TASK_QUEUE_NAME+" in ["+serviceControllerId+"].");
+//		rabbitMQChannel.basicConsume(queueName, false, callback)(queueName, false, deliverCallback, consumerTag -> { });
+//	}
+
 	public void basicConsumeQueue(String queueName, boolean priority, boolean input, 
 			DeliverCallback deliverCallback, ConsumerShutdownSignalCallback cssc) throws Exception {
 		//		System.out.println("Consuming "+TASK_QUEUE_NAME+" in ["+serviceControllerId+"].");
@@ -530,7 +544,7 @@ public class RabbitMQManager implements CommunicationManager{
 
 		String vhost = "/";
 		String host = "localhost";
-		int port = 8081;
+		int port = 5672;
 		ConnectionFactory factory = new ConnectionFactory();
 		factory.setUsername("guest");
 		factory.setPassword("guest");
@@ -546,6 +560,7 @@ public class RabbitMQManager implements CommunicationManager{
 		//		System.out.println(hostName+" "+portNumber+" "+virtualHost);
 		System.out.println("Starting new connection...");
 		rabbitMQConnection = factory.newConnection();
+		
 		
 		
 

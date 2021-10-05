@@ -32,7 +32,15 @@ public class SplitComponent extends WorkflowComponent{
 			throw e;
 		}
 	}
-	
+
+
+	@Override
+	public String executeComponentSynchronous(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
+		String msg = "Method not supported in SplitComponent.";
+		System.out.println(msg);
+		throw new WorkflowException(msg);
+	}
+
 	@Override
 	public String executeComponent(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
 		if(componentsList==null) {

@@ -12,6 +12,7 @@ import de.dfki.cwm.controllers.ControllersManager;
 import de.dfki.cwm.persistence.tasks.TaskManager;
 import de.dfki.cwm.persistence.workflowexecutions.WorkflowExecutionManager;
 import de.dfki.cwm.persistence.workflowtemplates.WorkflowTemplateManager;
+import de.dfki.cwm.storage.FileStorage;
 
 @Component
 public class DataManager {
@@ -37,4 +38,7 @@ public class DataManager {
     @Autowired
     public WorkflowExecutionManager workflowExecutionManager;
 	
+    @Autowired
+    public FileStorage fileStorage;
+    
 }

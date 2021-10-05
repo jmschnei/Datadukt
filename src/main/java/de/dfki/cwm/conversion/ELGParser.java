@@ -6,10 +6,10 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import de.dfki.cwm.communication.CommunicationManager;
-import de.dfki.cwm.communication.rabbitmq.RabbitMQManager;
 import de.dfki.cwm.controllers.Controller;
-import de.dfki.cwm.controllers.restapi.RestApiController;
+import de.dfki.cwm.controllers.restapi.ELGRestApiController;
+import de.dfki.cwm.data.Format;
+import de.dfki.cwm.persistence.DataManager;
 
 public class ELGParser {
 
@@ -20,12 +20,12 @@ public class ELGParser {
 		Controller c = ep.parseControllerFromELGMetadata(srvMetadata,null);
 	}
 
-	public Controller parseControllerFromELGId (String srvId, RabbitMQManager cm) throws Exception {
+	public Controller parseControllerFromELGId (String srvId, DataManager cm) throws Exception {
 		String srvMetadata = ELGServiceConfigCrawler.retrieveELGConfigMetadata(srvId);
 		return parseControllerFromELGMetadata(srvMetadata, cm);
 	}
 
-	public Controller parseControllerFromELGMetadata (String metadata, RabbitMQManager cm) throws Exception {
+	public Controller parseControllerFromELGMetadata (String metadata, DataManager cm) throws Exception {
 		Controller c = null;
 		JSONObject json = new JSONObject(metadata);
 //		System.out.println(json.toString(2));
@@ -42,7 +42,7 @@ public class ELGParser {
 		String out_processing_resource_type = null;
 		List<String> out_data_formats = new LinkedList<String>();
 		List<String> out_character_encoding = new LinkedList<String>();
-
+		String function =null;
 		for (String key : json.keySet()) {
 //			System.out.println(key);
 //			System.out.println(json.get(key));
@@ -58,7 +58,7 @@ public class ELGParser {
 
 				String lr_type = json.getJSONObject(key).getJSONObject("lr_subclass").getString("lr_type");
 				System.out.println("DEBUG: Type: "+lr_type);
-				String function = json.getJSONObject(key).getJSONObject("lr_subclass").getJSONArray("function").getString(0);
+				function = json.getJSONObject(key).getJSONObject("lr_subclass").getJSONArray("function").getString(0);
 				System.out.println("DEBUG: Function: "+function);
 
 				JSONObject jsonInput = json.getJSONObject(key).getJSONObject("lr_subclass").getJSONArray("input_content_resource").getJSONObject(0);
@@ -119,7 +119,7 @@ public class ELGParser {
 		String controllerId = "ELG_"+srvId;
 		JSONObject definition = new JSONObject();
 		definition.put("controllerName","ELG Service "+srvId);
-		definition.put("serviceId", srvId);
+		definition.put("serviceId", function);
 		definition.put("controllerId", controllerId);
 		definition.put("connectionType", "restapi");
 
@@ -138,7 +138,8 @@ public class ELGParser {
 		JSONObject connection = new JSONObject();
 		connection.put("connection_type", "restapi");
 		connection.put("method","POST");
-		connection.put("endpoint_url",srvUrlSync);
+//		connection.put("endpoint_url",srvUrlSync);
+		connection.put("endpoint_url",srvUrlAsync);
 
 		// TODO Include needed parameters
 		
@@ -152,26 +153,41 @@ public class ELGParser {
 
 		// TODO Include suitable body values
 		
-		connection.put("body", new JSONObject("{\"content\": \"elgparser\"}"));
+		connection.put("body", new JSONObject("{\"content\": \"storedfile\"}"));
 		
 		JSONArray headers = new JSONArray();
 		String oData = out_data_formats.get(0);
 		String iData = in_data_formats.get(0);
-		headers.put(new JSONObject("{\"name\": \"Accept\",\"type\": \"header\",\"default_value\": \""+oData+"\",\"required\": true}"));
-		headers.put(new JSONObject("{\"name\": \"Content-Type\",\"type\": \"header\",\"default_value\": \""+iData+"\",\"required\": true}"));
+		Format oFormat = Format.getFormat(oData);
+		Format iFormat = Format.getFormat(iData);
+		headers.put(new JSONObject("{\"name\": \"Accept\",\"type\": \"header\",\"default_value\": \""+oFormat.toString()+"\",\"required\": true}"));
+		headers.put(new JSONObject("{\"name\": \"Content-Type\",\"type\": \"header\",\"default_value\": \""+iFormat.toString()+"\",\"required\": true}"));
 		connection.put("headers", headers);
 
-//		ELGTokenParser etp = new ELGTokenParser();
 		JSONArray authorization = new JSONArray();
+		ELGTokenParser etp = new ELGTokenParser();
 //		String token = etp.getELGServiceToken(srvId);
-		String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJ0MVhwNXlCb1VpREM0emxOdTcyeUNwT3hKRG1fQTdObVRkSjZRcVRiQW5nIn0.eyJqdGkiOiI4NTNkYjdiZi1mODRhLTRkMTQtOWU2Yy01MmYwYzlhMGQ3NDciLCJleHAiOjE2MDA0NTA5MDksIm5iZiI6MCwiaWF0IjoxNjAwNDQwMTA5LCJpc3MiOiJodHRwczovL2xpdmUuZXVyb3BlYW4tbGFuZ3VhZ2UtZ3JpZC5ldS9hdXRoL3JlYWxtcy9FTEciLCJhdWQiOiJlbGdfZ2F0ZWtlZXBlciIsInN1YiI6ImE1N2U3NGI3LTVjNGEtNGJjOC04NmI1LWEyMWJmNDIzZTkxYyIsInR5cCI6IkJlYXJlciIsImF6cCI6InJlYWN0LWNsaWVudCIsIm5vbmNlIjoiNmU1MjFkODAtM2ViNC00MzU0LWEzMTUtMDhiYTgxMGEwOTc2IiwiYXV0aF90aW1lIjoxNjAwNDQwMTA2LCJzZXNzaW9uX3N0YXRlIjoiMWIwOWYyODAtOGQ3MS00NDk4LWI0MGEtNjI4YmRjN2U1MWM4IiwiYWNyIjoiMCIsImFsbG93ZWQtb3JpZ2lucyI6WyJodHRwczovL2xpdmUuZXVyb3BlYW4tbGFuZ3VhZ2UtZ3JpZC5ldS8iXSwicmVzb3VyY2VfYWNjZXNzIjp7InJlYWN0LWNsaWVudCI6eyJyb2xlcyI6WyJjb25zdW1lciJdfX0sInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgZW1haWwiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6Ikp1bGlhbiBNb3Jlbm8gU2NobmVpZGVyIiwicHJlZmVycmVkX3VzZXJuYW1lIjoianVsaWFuLm1vcmVub19zY2huZWlkZXJAZGZraS5kZSIsImdpdmVuX25hbWUiOiJKdWxpYW4iLCJmYW1pbHlfbmFtZSI6Ik1vcmVubyBTY2huZWlkZXIiLCJlbWFpbCI6Imp1bGlhbi5tb3Jlbm9fc2NobmVpZGVyQGRma2kuZGUifQ.eh842c5X3Hx7CPeCoRGaos53swBSeZt30qLHtE_B08j4aa5C-hKn0S_0j8gQ51D5EzjxO7DRv8HZLsFSwcNmUwrlu2hO_HNQOsEQGNeN98LStEYK3FKQXWr29kGRIwOxeouPT7hB4xj4VfyKQUARpKnjrZ659UyWsfe2XjrR39z4YCuELzT9aKbxJsX3q_36ldStnBxPlCqWBY3iliLXb8y2Am6Ce9ikQkrk0fKsubYIjoPXDLFRU8KHThQfJtvXKlsJuZ3kK-c-AFoI-QjF7uvZ6lF4Nwe2r3GBHza1O4AxsTChxpN5pMeO5WbGj656tfHIRl5DYbCV7AM3ruykHg";
+		String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJ0MVhwNXlCb1VpREM0emxOdTcyeUNwT3hKRG1fQTdObVRkSjZRcVRiQW5nIn0.eyJqdGkiOiJlODJjNDQ5ZC00OTljLTQzNjMtYTFkZC1mMjQ0ZTk1ZTJmMzEiLCJleHAiOjE2MDA5ODYwMDQsIm5iZiI6MCwiaWF0IjoxNjAwOTc1MjA0LCJpc3MiOiJodHRwczovL2xpdmUuZXVyb3BlYW4tbGFuZ3VhZ2UtZ3JpZC5ldS9hdXRoL3JlYWxtcy9FTEciLCJhdWQiOiJlbGdfZ2F0ZWtlZXBlciIsInN1YiI6ImE1N2U3NGI3LTVjNGEtNGJjOC04NmI1LWEyMWJmNDIzZTkxYyIsInR5cCI6IkJlYXJlciIsImF6cCI6InJlYWN0LWNsaWVudCIsIm5vbmNlIjoiNWVmMmZiMGMtYTRmZS00NzUwLTgyZGYtNDYyNjk2ZTVhM2E4IiwiYXV0aF90aW1lIjoxNjAwOTc1MjAzLCJzZXNzaW9uX3N0YXRlIjoiMGZhMjQzZjktY2RkMy00YzdjLTg3M2QtMzc3YTY4ODM1YTY4IiwiYWNyIjoiMCIsImFsbG93ZWQtb3JpZ2lucyI6WyJodHRwczovL2xpdmUuZXVyb3BlYW4tbGFuZ3VhZ2UtZ3JpZC5ldS8iXSwicmVzb3VyY2VfYWNjZXNzIjp7InJlYWN0LWNsaWVudCI6eyJyb2xlcyI6WyJjb25zdW1lciJdfX0sInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgZW1haWwiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6Ikp1bGlhbiBNb3Jlbm8gU2NobmVpZGVyIiwicHJlZmVycmVkX3VzZXJuYW1lIjoianVsaWFuLm1vcmVub19zY2huZWlkZXJAZGZraS5kZSIsImdpdmVuX25hbWUiOiJKdWxpYW4iLCJmYW1pbHlfbmFtZSI6Ik1vcmVubyBTY2huZWlkZXIiLCJlbWFpbCI6Imp1bGlhbi5tb3Jlbm9fc2NobmVpZGVyQGRma2kuZGUifQ.IZWn2tK14keAi8smXRF41bUgf7vqvt3J0QAMMeErMbBhN3reBO9oO2rQFdRZcnHatiVXKB9u_uZUOYaulbyUAY5eDYrFA0iklxLGEYv72HQixPyE-Z0dPQK8bqgMQQb6C_xpQsnE-wy6HXReskbsFQQnpAtbDlR07eZxPPgtuXA3ISZOlEx_IaJMpAwqZ4QAUCRRzsCLrSHP8F1YIPvAT9oatNy94Djk7Y7JZIV8CGnsPgWaMy3pbj6a05d3ewVCh6VKtFv8HYMpGiHMw7qou9MhKFM68e-OA00XuBJ3MKwhlCihTcoaYFdlC02NiL2CnP7FXZWBShFxg4H8-7UpBg";
 		System.out.println("DEBUG: Obtained token: "+token);
 		authorization.put(new JSONObject("{\"name\": \"tokenauth\",\"type\": \"tokenauth\",\"default_value\": \""+token+"\",\"required\": true}"));
 		connection.put("authorization", authorization);
 
 		definition.put("connection", connection);
 		
-		c = new RestApiController(definition, cm);
+		c = new ELGRestApiController(definition, cm);
+		System.out.println(c.getJSONRepresentation().toString(2));
+		return c;
+	}
+
+	public Controller parseControllerFromJSON(JSONObject json, DataManager dataManager2) throws Exception{
+		String srvId = (json.has("serviceId")) ? json.getString("serviceId"): "null";
+		if(srvId==null) {
+			return null;
+		}
+		Controller c = parseControllerFromELGId(srvId, dataManager2);
+		if(json.has("controllerId")) {
+			c.setControllerId(json.getString("controllerId"));
+		}
 		return c;
 	}
 }

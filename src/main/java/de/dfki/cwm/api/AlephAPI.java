@@ -18,8 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import de.dfki.cwm.engine.CWMEngine;
 import de.dfki.cwm.exceptions.WorkflowException;
-import de.qurator.commons.QuratorDocument;
-import de.qurator.commons.conversion.QuratorSerialization;
 
 
 /**

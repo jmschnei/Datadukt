@@ -1,5 +1,6 @@
 package de.dfki.cwm.controllers.restapi;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
@@ -8,18 +9,23 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Transient;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.request.HttpRequest;
 import com.mashape.unirest.request.HttpRequestWithBody;
+import com.mashape.unirest.request.body.RawBody;
+import com.mashape.unirest.request.body.RequestBodyEntity;
 
+import de.dfki.cwm.conversion.ELGTokenParser;
 import de.dfki.cwm.exceptions.WorkflowException;
-import de.qurator.commons.QuratorDocument;
-import de.qurator.commons.conversion.QuratorDeserialization;
-import de.qurator.commons.conversion.QuratorSerialization;
+import de.dfki.cwm.storage.FileStorage;
 
 /**
  * @author julianmorenoschneider
@@ -32,6 +38,10 @@ import de.qurator.commons.conversion.QuratorSerialization;
  */
 @Entity
 public class RestApiConnection {
+
+	// Logger object
+	@Transient
+	Logger logger = Logger.getLogger(RestApiConnection.class);
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -52,16 +62,30 @@ public class RestApiConnection {
 
 	HashMap<String, RestApiAuthorization> authorization;
 
+	
+	@Transient
+	@Autowired
+	FileStorage fileStorage;
+	
 	public RestApiConnection() throws Exception {
+//		fileStorage = Springy.bean(FileStorage.class);
 		type = "dummy";
 		endpoint = "";
 		method = "";
 		parameters = new HashMap<String, RestApiParameter>();
 		headers = new HashMap<String, RestApiHeader>();
 		authorization = new HashMap<String, RestApiAuthorization>();
+//		fileStorage = new FileStorage();
+//		File f = new File("/Users/julianmorenoschneider/Downloads/Frage1.mp3");
+//		fileStorage.setFile("1600785715153", f, false);
 	}
 
 	public RestApiConnection(JSONObject connection) throws Exception {
+//		fileStorage = Springy.bean(FileStorage.class);
+//		fileStorage = new FileStorage();
+//		File f = new File("/Users/julianmorenoschneider/Downloads/Frage1.mp3");
+//		fileStorage.setFile("1600785715153", f, false);
+
 		type = connection.getString("connection_type");
 		if(type==null || type.isEmpty()) {
 			String msg = "Error: Controller Type NULL or EMPTY.";
@@ -132,11 +156,13 @@ public class RestApiConnection {
 		}
 	}
 
-	public HttpRequest getRequest(String content, boolean isContent, JSONArray inputParameters) throws Exception {
+	public HttpRequest getRequest(Object content, boolean isContent, JSONArray inputParameters, FileStorage fs) throws Exception {
 		//    	String content = null;
+		fileStorage = fs;
 		HashMap<String, String> hmParameters = new HashMap<String, String>();
 		if(inputParameters!=null) {
-			System.out.println("DEBUG: input parameters in getRequest: "+inputParameters.toString(1));
+//			logger.debug("DEBUG: input parameters in getRequest: "+inputParameters.toString(1));
+//			System.out.println("DEBUG: input parameters in getRequest: "+inputParameters.toString(1));
 			for (int i = 0; i < inputParameters.length(); i++) {
 				JSONObject jsonObj = inputParameters.getJSONObject(i);
 				Iterator<String> it = jsonObj.keys();
@@ -147,10 +173,11 @@ public class RestApiConnection {
 			}
 		}
 		else {
-			System.out.println("DEBUG: input parameters in getRequest: NULL");
+			logger.warn("DEBUG: input parameters in getRequest: NULL");
 		}
-		hmParameters.put("content", content);
-		hmParameters.put("text", content);
+		hmParameters.put("content", content.toString());
+		hmParameters.put("text", content.toString());
+//		hmParameters.put("Content-Type", "audio/mpeg");
 //		QuratorDocument qd = QuratorDeserialization.fromRDF(content, "TURTLE");
 //		hmParameters.put("text", qd.getText());
 		
@@ -158,7 +185,7 @@ public class RestApiConnection {
 		//		System.out.println("DEBUG: SERIALIZE QDOCUMENT");
 		//		QuratorDocument qDocument = QuratorDeserialization.fromRDF(document, "TURTLE");
 
-		String body = "";
+		Object body = null;
 		if(bodyContent!=null) {
 			//    	if(parameters.containsKey("body")) {
 			//			String defaultValue = parameters.get("body").defaultValue;
@@ -172,7 +199,7 @@ public class RestApiConnection {
 				//						body = NIFReader.extractIsString(modelContent);
 				//					}
 				body = content;//qDocument.getText();
-				System.out.println("DEBUG: INCLUDING TEXT TO BODY REQUEST: "+body);
+//				System.out.println("DEBUG: INCLUDING TEXT TO BODY REQUEST: "+body);
 			}
 			else if(defaultValue.contains("documentContentNIF")) {
 				//					if(isContent) {
@@ -182,6 +209,9 @@ public class RestApiConnection {
 				//						body = NIFReader.model2String(modelContent, RDFSerialization.TURTLE);
 				//					}
 				body = content;//(String) QuratorSerialization.toRDF(qDocument, "TURTLE");
+			}
+			else if(defaultValue.contains("ELG_JSON")) {
+				body = defineAndFillELGBody(content,hmParameters);
 			}
 			else if(defaultValue.contains("jsonTemplate")) {
 				String templateName = defaultValue.substring(defaultValue.indexOf("_")+1);
@@ -198,17 +228,25 @@ public class RestApiConnection {
 			else if(defaultValue.contains("inputParameter")) {
 				body = "inputParameter";
 			}
+			else if(defaultValue.contains("storedfile")) {
+				String sContent = content.toString();
+				File f = null;
+				if(sContent.startsWith("file:")) {
+//					System.out.println(sContent);
+					String fileId = sContent.substring(sContent.indexOf(':')+1);
+					f = fileStorage.getFile(fileId);
+					body = FileUtils.readFileToByteArray(f);
+				}
+				else {
+					// TODO ERROR.
+				}
+			}
 			else {
 				throw new Exception("body defaultValue not supported \""+defaultValue+"\".");
 			}
-			//			}
-			//			else {
-			//		    	body = defaultValue;
-			//			}
-			//	    	System.out.println("CONTENT FOR CONTROLLER CONNECTION: "+body);
 		}
 
-		System.out.println("DEBUG: DEFINING REQUEST: ");
+//		System.out.println("DEBUG: DEFINING REQUEST: ");
 
 		HttpRequest request;
 		if(method.equalsIgnoreCase("get")) {
@@ -224,13 +262,20 @@ public class RestApiConnection {
 			//	    	System.out.println("PUT CONNECTION");
 		}
 		else if(method.equalsIgnoreCase("post")) {
-			HttpRequestWithBody request2 = Unirest.post(endpoint);
+//			HttpRequestWithBody request2 = Unirest.post(endpoint);
+			RequestBodyEntity rbe = null;
+			RawBody rb = null;
 			if(bodyContent!=null) {
 				//	    		System.out.println("ADDING BODY: "+body);
-				request2.body(body);
+				if(body instanceof String) {
+					rb = Unirest.post(endpoint).body(((String) body).getBytes());
+				}
+				else if(body instanceof byte[]) {
+					rb = Unirest.post(endpoint).body((byte[])body);
+				}
+//				request2.body(body);
 			}
-			request = request2;
-			//	    	System.out.println("POST CONNECTION");
+			request = rb.getHttpRequest();
 		}
 		else if(method.equalsIgnoreCase("delete")) {
 			HttpRequestWithBody request2 = Unirest.delete(endpoint);
@@ -296,16 +341,40 @@ public class RestApiConnection {
 					token = value;
 				}
 				else {
-					token = auth.user;
+					token = auth.accessToken;
 				}
 			    request = request.header("Authorization", "Bearer "+token);
-				System.out.println("SET AUTHORIOZATION: Bearer "+token);
+//				System.out.println("SET tokenauth AUTHORIOZATION: Bearer "+token);
+			}
+			else if(auth.name.equalsIgnoreCase("elgtokenauth")) {
+				String token = null;
+				if(hmParameters!=null && hmParameters.containsKey(auth.name)) {
+					String value = hmParameters.get(auth.name);
+					token = value;
+				}
+				else {
+					token = (new ELGTokenParser()).getRefreshToken(auth.refreshToken);
+				}
+			    request = request.header("Authorization", "Bearer "+token);
+//				System.out.println("SET elgtokenauth AUTHORIOZATION: Bearer "+token);
 			}
 			else {
 				throw new Exception ("Unsupported Authorization method in Controller Connection");
 			}
 		}
 		return request;
+	}
+
+	private Object defineAndFillELGBody(Object content, HashMap<String, String> hmParameters) {
+		String template = "{" + 
+				"  \"type\":\"text\"," + 
+//				"  \"content\":\"\"," + 
+				"  \"mimeType\":\"text/plain\"" + 
+				"}";
+		JSONObject jsonElgRequest = new JSONObject(template);
+		jsonElgRequest.put("content", content);
+//		System.out.println("ELG BODY: "+jsonElgRequest.toString());
+		return jsonElgRequest.toString();
 	}
 
 	private String defineAndFillTemplate(String templateName, HashMap<String, String> hmParameters) throws Exception {
@@ -375,8 +444,31 @@ public class RestApiConnection {
 			parametersArray.put(jsonParameter);
 		}
 		json.put("parameters", parametersArray);
+		JSONArray headersArray = new JSONArray();
+		Set<String> keysHead = headers.keySet();
+		for (String s : keysHead) {
+			RestApiHeader cp = headers.get(s);
+			JSONObject jsonParameter = new JSONObject();
+			jsonParameter.put("name", cp.getName());
+			jsonParameter.put("type", cp.getType());
+			jsonParameter.put("defaultValue", cp.getDefaultValue());
+			jsonParameter.put("required", cp.isRequired());
+			headersArray.put(jsonParameter);
+		}
+		json.put("headers", headersArray);
 		return json;
 	}
 
+	public String getToken() {
+		for (String key : authorization.keySet()) {
+			RestApiAuthorization auth = authorization.get(key);
+			if(auth.name.equalsIgnoreCase("tokenauth")) {
+				String token = null;
+				token = auth.user;
+				return token;
+			}
+		}
+		return null;
+	}
 
 }

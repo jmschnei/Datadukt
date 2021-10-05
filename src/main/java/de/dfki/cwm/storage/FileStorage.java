@@ -121,9 +121,23 @@ public class FileStorage {
 	}
 
 	public File getFile(String id) {
+		
 		if(temporaryFiles.containsKey(id)) {
 			return temporaryFiles.get(id);
 		}
 		return null;
+	}
+
+	public boolean setFile(String id, File f, boolean override) {
+		if(!temporaryFiles.containsKey("id")) {
+			temporaryFiles.put(id, f);
+		}
+		else if(override) {
+			temporaryFiles.put(id, f);
+		}
+		else {
+			return false;
+		}
+		return true;
 	}
 }

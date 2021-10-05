@@ -7,11 +7,11 @@ import org.json.JSONObject;
 
 import de.dfki.cwm.components.WorkflowComponent;
 import de.dfki.cwm.data.Format;
+import de.dfki.cwm.data.documents.WMDocument;
+import de.dfki.cwm.data.documents.conversion.WMDeserialization;
+import de.dfki.cwm.data.documents.conversion.WMSerialization;
 import de.dfki.cwm.exceptions.WorkflowException;
 import de.dfki.cwm.persistence.DataManager;
-import de.qurator.commons.QuratorDocument;
-import de.qurator.commons.conversion.QuratorDeserialization;
-import de.qurator.commons.conversion.QuratorSerialization;
 
 public class ConversionOutputComponent extends OutputComponent {
 
@@ -19,6 +19,11 @@ public class ConversionOutputComponent extends OutputComponent {
 	
 	public ConversionOutputComponent(Format outputFormat) {
 		this.outputFormat = outputFormat;
+	}
+
+	@Override
+	public String executeComponentSynchronous(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
+		return executeComponent(document, parameters, priority, manager, outputCallback, statusCallback, persist, isContent);
 	}
 
 	@Override
@@ -41,8 +46,8 @@ public class ConversionOutputComponent extends OutputComponent {
 			case TURTLE:
 				return content;
 			case JSONLD:
-				QuratorDocument qd = QuratorDeserialization.fromRDF(content, "TURTLE");
-				return QuratorSerialization.toJSON(qd, true);
+				WMDocument qd = WMDeserialization.fromRDF(content, "TURTLE");
+				return WMSerialization.toJSON(qd, true);
 //			case RDFXML:
 //				format = RDFSerialization.RDF_XML;
 //			case JSON:

@@ -5,7 +5,6 @@ import java.util.Date;
 public class IdentifierGenerator {
 
 	public static String createWorkflowTemplateId() {
-		// TODO Auto-generated method stub
 		String id = (new Date()).getTime()+"";
 		return id;		
 	}
@@ -23,6 +22,11 @@ public class IdentifierGenerator {
 	public static String createControllerId() {
 		String id = (new Date()).getTime()+"";
 		return id;
+	}
+
+	public static String createWorkflowInstanceId() {
+		String id = (new Date()).getTime()+"";
+		return id;		
 	}
 
 

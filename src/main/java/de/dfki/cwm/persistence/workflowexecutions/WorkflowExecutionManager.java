@@ -40,11 +40,11 @@ public class WorkflowExecutionManager {
 	public WorkflowExecution findOneByWorkflowExecutionId(String workflowExecutionId) throws Exception {
 		WorkflowExecution wfe = null;
 		if(workflowExecutions.containsKey(workflowExecutionId)) {
-			System.out.println("RETURNING WFE FROM HASHMAP");
+			logger.debug("RETURNING WFE FROM HASHMAP");
 			return workflowExecutions.get(workflowExecutionId);
 		}
 		else if ((wfe=workflowExecutionRepository.findOneByWorkflowExecutionId(workflowExecutionId))!=null) {
-			System.out.println("RETURNING WFE FROM REPOSITORY");
+			logger.debug("RETURNING WFE FROM REPOSITORY");
 			return wfe;
 		}
 		else {

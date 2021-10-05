@@ -1,5 +1,6 @@
 package de.dfki.cwm.persistence.workflowexecutions;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -15,6 +16,7 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Transient;
 
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,15 +25,16 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 
+import de.dfki.cwm.components.SequentialComponent;
 import de.dfki.cwm.components.WorkflowComponent;
 import de.dfki.cwm.components.input.InputComponent;
 import de.dfki.cwm.components.output.OutputComponent;
 import de.dfki.cwm.data.Format;
+import de.dfki.cwm.data.documents.WMDocument;
 import de.dfki.cwm.exceptions.WorkflowException;
 import de.dfki.cwm.persistence.DataManager;
 import de.dfki.cwm.persistence.tasks.Task;
 import de.dfki.cwm.persistence.workflowtemplates.WorkflowTemplate;
-import de.qurator.commons.QuratorDocument;
 
 /**
  * @author Julian Moreno Schneider julian.moreno_schneider@dfki.de
@@ -44,7 +47,11 @@ import de.qurator.commons.QuratorDocument;
  *
  */
 @Entity
-public class WorkflowExecution {
+public class WorkflowExecution implements Serializable {
+
+	// Logger object
+	@Transient
+	Logger logger = Logger.getLogger(SequentialComponent.class);
 
 	public enum Status {
 		CREATED, RUNNING, FINISHED, PAUSED
@@ -151,7 +158,6 @@ public class WorkflowExecution {
 			/**
 			 * TODO include user and project from the JSON if comming.
 			 */
-			
 			this.workflowExecutionName = workflowExecutionDescription.getString("workflowExecutionName");			
 			this.workflowExecutionId  = (workflowExecutionDescription.has("workflowExecutionId")) 
 					? workflowExecutionDescription.getString("workflowExecutionId") 
@@ -189,12 +195,9 @@ public class WorkflowExecution {
 			}
 			inputLanguage = (workflowExecutionDescription.has("language")) ? workflowExecutionDescription.getString("language") : null;
 
-			//			System.out.println("WorkflowId (constructor with json): "+this.workflowId);
-
 			InputComponent inputComp = InputComponent.defineInput(sInputFormat, inputLanguage, inputPersist, inputContent);
 			components.add(inputComp);
 
-//			System.out.println(wt.getWorkflowTemplateDescription());
 			JSONObject workflowDescription = new JSONObject(wt.getWorkflowTemplateDescription());
 			JSONArray arrayTasks = workflowDescription.getJSONArray("tasks");
 			for (int i = 0; i < arrayTasks.length(); i++) {
@@ -225,7 +228,6 @@ public class WorkflowExecution {
 				componentHash.put("done", new LinkedList<JSONObject>());
 				componentsToDocuments.put(wc.getWorkflowComponentId(), componentHash);
 			}
-			
 //			List<Task> tasks = wt.getTasks();
 //			for (Task task : tasks) {
 //				System.out.println("Adding TASK: " +task.getTaskId());
@@ -238,18 +240,16 @@ public class WorkflowExecution {
 //				componentHash.put("done", new LinkedList<JSONObject>());
 //				componentsToDocuments.put(wc.getWorkflowComponentId(), componentHash);
 //			}
-
 			OutputComponent outputComp = OutputComponent.defineOutput(sOutputFormat);
 			components.add(outputComp);
-
-			System.out.println("NUMBER OF COMPONENTS in workflow: "+components.size());
+//			System.out.println("NUMBER OF COMPONENTS in workflow: "+components.size());
+			logger.info("NUMBER OF COMPONENTS in workflow: "+components.size());
 
 		}
 		catch(Exception e){
 			e.printStackTrace();
 			throw e;
 		}
-		//		System.out.println("COMPONENTS SIZE IN WORKFLOW CONSTRUCTOR: "+components.size());
 	}
 
 	public WorkflowExecution(String workflowString, DataManager dataManager, WorkflowTemplate wt) throws Exception {
@@ -284,21 +284,22 @@ public class WorkflowExecution {
 			for (WorkflowComponent wfc : components) {
 				counter++;
 				String auxStatus = "RUNNING --> "+counter+"/"+components.size()+" component: "+wfc.getWorkflowComponentName();
-				System.out.println(auxStatus);
+//				System.out.println(auxStatus);
+				logger.info(auxStatus);
 //				System.out.println(wfc.getClass());
 //				System.out.println(wfc.getJSONRepresentation().toString(1));
 				status = Status.RUNNING;
 				//					System.out.println(wfc.getWorkflowComponentId());
 				//					System.out.println(wfc.getClass());
 				//					wfc.executeComponent(documentId, priority);
-				System.out.println("Service input ("+wfc.getWorkflowComponentName()+"--"+wfc.getWorkflowComponentName()+") result: "+serviceResult);
+//				System.out.println("Service input ("+wfc.getWorkflowComponentName()+"--"+wfc.getWorkflowComponentName()+") result: "+serviceResult);
 				if(parameters!=null && !parameters.isEmpty()) {
 					serviceResult = wfc.executeComponent(serviceResult, parameters, priority, manager, outputCallback, statusCallback, inputPersist, inputContent);
 				}
 				else {
 					serviceResult = wfc.executeComponent(serviceResult, priority, manager, outputCallback, statusCallback, inputPersist, inputContent);
 				}
-				System.out.println("Service output ("+wfc.getWorkflowComponentName()+"--"+wfc.getWorkflowComponentName()+") result: "+serviceResult);
+//				System.out.println("Service output ("+wfc.getWorkflowComponentName()+"--"+wfc.getWorkflowComponentName()+") result: "+serviceResult);
 				if(serviceResult==null){
 					return null;
 				}
@@ -307,7 +308,8 @@ public class WorkflowExecution {
 				//					}
 				//					System.out.println("Registering status change: ");
 				if(statusCallback!=null && !statusCallback.equalsIgnoreCase("")) {
-					System.out.println(statusCallback);
+//					System.out.println(statusCallback);
+					logger.debug(statusCallback);
 					HttpResponse<String> statusCallbackResponse = Unirest.post(statusCallback).queryString("status", auxStatus).body(auxStatus).asString();
 					if(statusCallbackResponse.getStatus()!=200) {
 						throw new Exception("Error reporting statusCallback from workflow [" + workflowExecutionId + "] with ERROR: " + statusCallbackResponse.getStatus() + " ["+statusCallbackResponse.getBody()+"]");
@@ -326,6 +328,7 @@ public class WorkflowExecution {
 	public void notifyOutput(String s) throws Exception {
 		future.complete(s);
 		status = Status.FINISHED;
+		logger.info("Workflow Execution has finished");
 		if(outputCallback!=null && !outputCallback.equalsIgnoreCase("")) {
 			HttpResponse<String> callbackResponse = Unirest.post(outputCallback).body(s).asString();
 			if(callbackResponse.getStatus()!=200) {
@@ -344,7 +347,8 @@ public class WorkflowExecution {
 			throw new WorkflowException(msg);
 		}
 		status = Status.RUNNING;
-		System.out.println("EXECUTING THE WORKFLOW.");
+//		System.out.println("EXECUTING THE WORKFLOW.");
+		logger.info("Executing the workflow ...");
 
 //		CompletableFuture<String> contentFuture = CompletableFuture.supplyAsync(() -> {
 //			String fileContent = "";
@@ -372,7 +376,8 @@ public class WorkflowExecution {
 		CompletableFuture.supplyAsync(() -> {
 			String s = "";
 			try {
-				System.out.println("EXECUTING THE METHOD IN ASYNCHRONOUS MODE.");
+//				System.out.println("EXECUTING THE METHOD IN ASYNCHRONOUS MODE.");
+				logger.info("Executing the method in asynchronous mode");
 				s = executeComponents(fileContent2,manager);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -405,8 +410,8 @@ public class WorkflowExecution {
 		CompletableFuture.supplyAsync(() -> {
 			String s = "";
 			try {
-				System.out.println("EXECUTING THE CONTENT METHOD IN ASYNCHRONOUS MODE.");
-//				System.out.println(fileContent2);
+//				System.out.println("EXECUTING THE METHOD IN ASYNCHRONOUS MODE.");
+				logger.info("Executing the method in asynchronous mode");
 				s = executeComponents(fileContent2,manager);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -420,10 +425,10 @@ public class WorkflowExecution {
 				e.printStackTrace();
 			}
 		});
-		return status.toString();
+		return status.toString()+" "+workflowExecutionId;
 	}
 
-	public String execute(QuratorDocument qd, boolean priority, DataManager manager) throws Exception {
+	public String execute(WMDocument qd, boolean priority, DataManager manager) throws Exception {
 		return execute(qd.toRDF("TURTLE"), priority, manager);
 	}
 
@@ -455,6 +460,22 @@ public class WorkflowExecution {
 //		status.put("workflowexecution", workflowstatus);
 //		return status.toString();
 		return this.status.name();
+	}
+	
+	public String getWorkflowExecutionDescription() {
+		return workflowExecutionDescription;
+	}
+
+	public void setWorkflowExecutionDescription(String workflowExecutionDescription) {
+		this.workflowExecutionDescription = workflowExecutionDescription;
+	}
+
+	public String getWorkflowExecutionId() {
+		return workflowExecutionId;
+	}
+
+	public void setWorkflowExecutionId(String workflowExecutionId) {
+		this.workflowExecutionId = workflowExecutionId;
 	}
 
 	public String getOutput() {

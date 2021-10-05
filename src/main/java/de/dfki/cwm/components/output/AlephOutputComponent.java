@@ -1,6 +1,5 @@
 package de.dfki.cwm.components.output;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -8,19 +7,23 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import de.dfki.cwm.components.WorkflowComponent;
+import de.dfki.cwm.data.documents.BaseAnnotation;
+import de.dfki.cwm.data.documents.Label;
+import de.dfki.cwm.data.documents.LabelAnnotation;
+import de.dfki.cwm.data.documents.LabelPositionAnnotation;
+import de.dfki.cwm.data.documents.WMDocument;
+import de.dfki.cwm.data.documents.conversion.WMDeserialization;
 import de.dfki.cwm.exceptions.WorkflowException;
 import de.dfki.cwm.persistence.DataManager;
-import de.qurator.commons.BaseAnnotation;
-import de.qurator.commons.Label;
-import de.qurator.commons.LabelAnnotation;
-import de.qurator.commons.LabelPositionAnnotation;
-import de.qurator.commons.QuratorDocument;
-import de.qurator.commons.TextAnnotation;
-import de.qurator.commons.conversion.QuratorDeserialization;
 
 public class AlephOutputComponent extends OutputComponent {
 
 		public AlephOutputComponent() {
+		}
+
+		@Override
+		public String executeComponentSynchronous(String document, HashMap<String, String> parameters, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException{
+			return executeComponent(document, parameters, priority, manager, outputCallback, statusCallback, persist, isContent);
 		}
 
 		@Override
@@ -38,15 +41,15 @@ public class AlephOutputComponent extends OutputComponent {
 		public String executeComponent(String content, boolean priority, DataManager manager, String outputCallback, String statusCallback, boolean persist, boolean isContent) throws WorkflowException {
 			try {
 				
-				System.out.println("---------------");
-				System.out.println("---------------");
-				System.out.println("---------------");
-				System.out.println(content);
-				System.out.println("---------------");
-				System.out.println("---------------");
-				System.out.println("---------------");
+//				System.out.println("---------------");
+//				System.out.println("---------------");
+//				System.out.println("---------------");
+//				System.out.println(content);
+//				System.out.println("---------------");
+//				System.out.println("---------------");
+//				System.out.println("---------------");
 				
-				QuratorDocument qd = QuratorDeserialization.fromRDF(content, "TURTLE");
+				WMDocument qd = WMDeserialization.fromRDF(content, "TURTLE");
 				JSONArray arrayE = new JSONArray();
 				JSONArray arrayT = new JSONArray();
 				List<BaseAnnotation> annotations = qd.getAnnotations();
