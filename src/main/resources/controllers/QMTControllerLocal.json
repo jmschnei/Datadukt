@@ -1,13 +1,13 @@
 {
-	"controllerName": "Qurator MT Controller",
-	"serviceId": "QMT",
-	"controllerId": "QMTController",
+	"controllerName": "Qurator MT Controller in Localhost",
+	"serviceId": "QMTLocal",
+	"controllerId": "QMTControllerLocal",
 	"connectionType": "restapi",
 	"queues": {
-		"nameInputNormal": "QMT_input_normal",
-		"nameInputPriority": "QMT_input_prio",
-		"nameOutputNormal": "QMT_output_normal",
-		"nameOutputPriority": "QMT_output_prio"
+		"nameInputNormal": "QMTLocal_input_normal",
+		"nameInputPriority": "QMTLocal_input_prio",
+		"nameOutputNormal": "QMTLocal_output_normal",
+		"nameOutputPriority": "QMTLocal_output_prio"
 	},
 	"input": {
 		"format": "text"
@@ -18,7 +18,7 @@
 	"connection": {
 		"connection_type": "restapi",
 		"method": "POST",
-		"endpoint_url": "https://demo.qurator.ai/pub/srv-translation/translate",
+		"endpoint_url": "http://localhost:8080/translate",
 		"parameters": [
 			{
 				"name": "orig_lang",
