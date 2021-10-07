@@ -351,9 +351,12 @@ public class WorkflowExecutionAPI{
 					System.out.println(result);
 					String sResult = (String) result;
 					String weId = sResult.substring(sResult.indexOf(' ')+1);
+					System.out.println(weId);
 		        	String resultQD = engine.getWorkflowExecutionOutput(weId,contentTypeHeader,true);		        	
 					// Convert output.
+		        	System.out.println("QD_Result: "+resultQD);
 		        	responseString = WMSerialization.toFormat(resultQD,oFormat.toString(),oSemanticFormat.toString());
+		        	System.out.println("Response_Result: "+responseString);
 			        responseHeaders.add("Content-Type", oFormat.toString());
 					httpStatus=HttpStatus.OK;
 				}

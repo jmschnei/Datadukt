@@ -64,6 +64,9 @@ public enum Format {
 	public static final String[] json = {"json","JSON","application/json"};
 	public static final List<String> json2 = Arrays.asList(json);
 
+	public static final String[] jsontopic = {"jsontopic","JSONTOPIC","json+topic","JSON+TOPIC","application/json+topic"};
+	public static final List<String> jsontopic2 = Arrays.asList(jsontopic);
+
 	public static final String[] rdfxml = {"rdfxml","RDFXML","application/xml+rdf"};
 	public static final List<String> rdfxml2 = Arrays.asList(rdfxml);
 
@@ -148,6 +151,9 @@ public enum Format {
 		}
 		if(multi2.contains(sFormat)) {
 			return MULTIPART;
+		}
+		if(jsontopic2.contains(sFormat)) {
+			return JSONTOPIC;
 		}
 		throw new WorkflowException("Unsupported format: "+sFormat);
 	}

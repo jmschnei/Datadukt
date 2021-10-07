@@ -17,6 +17,7 @@ import org.apache.jena.riot.JsonLDWriteContext;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFWriter;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +25,12 @@ import com.github.jsonldjava.core.JsonLdOptions;
 import com.github.jsonldjava.utils.JsonUtils;
 
 import de.dfki.cwm.data.Format;
+import de.dfki.cwm.data.documents.BaseAnnotation;
+import de.dfki.cwm.data.documents.Label;
+import de.dfki.cwm.data.documents.LabelAnnotation;
+import de.dfki.cwm.data.documents.LabelPositionAnnotation;
 import de.dfki.cwm.data.documents.WMDocument;
+import de.dfki.cwm.exceptions.WorkflowException;
 
 /**
  * @author Julian Moreno Schneider julian.moreno_schneider@dfki.de
@@ -99,9 +105,69 @@ public class WMSerialization {
 
 	public static String toJSON(WMDocument doc, String sSemFormat) throws Exception {
 		
-		// TODO It has to be implemented.
-		
-		return null;
+		if(sSemFormat.equalsIgnoreCase(Format.ALEPH.toString())) {
+			return toJSONAleph(doc);
+		}
+		else{
+			
+			// TODO 
+			
+			return null;
+		}
+	}
+
+	public static String toJSONAleph(WMDocument qd) throws Exception {
+		try {
+			JSONArray arrayE = new JSONArray();
+			JSONArray arrayTopic = new JSONArray();
+			JSONArray arrayTimex = new JSONArray();
+			JSONArray arrayTranslation = new JSONArray();
+			List<BaseAnnotation> annotations = qd.getAnnotations();
+			List<BaseAnnotation> docannotations = qd.getDocumentAnnotations();
+			annotations.addAll(docannotations);
+			for (BaseAnnotation ba : annotations) {
+//				System.out.println("BA");
+//				System.out.println(ba.toJSON());
+				if(ba instanceof LabelPositionAnnotation) {
+					LabelPositionAnnotation lpa = (LabelPositionAnnotation) ba;
+					String anchor = lpa.anchorOf;
+					List<Label> labels = lpa.getLabels();
+					for (Label l : labels) {
+//						if(l.annotationProperties.containsKey("itsrdf:taClassRef")) {
+//							String taClassRef = l.annotationProperties.get("qont:Topic");
+//							
+//							arrayTopic.put(l.annotationProperties.get("qont:Topic"));
+//						}
+//						if(l.annotationProperties.containsKey("qont:Translation")) {
+//							arrayTranslation.put(l.annotationProperties.get("qont:Translation"));
+//						}
+					}
+					arrayE.put(anchor);
+				}
+				else if(ba instanceof LabelAnnotation) {
+					LabelAnnotation la = (LabelAnnotation) ba;
+					List<Label> labels = la.getLabels();
+					for (Label l : labels) {
+						if(l.annotationProperties.containsKey("qont:Topic")) {
+							arrayTopic.put(l.annotationProperties.get("qont:Topic"));
+						}
+						if(l.annotationProperties.containsKey("qont:Translation")) {
+							arrayTranslation.put(l.annotationProperties.get("qont:Translation"));
+						}
+					}
+				}
+			}
+			JSONObject json = new JSONObject();
+			json.put("text", qd.getText());
+			json.put("annotations", arrayE);
+			json.put("topics", arrayTopic);
+			json.put("timex", arrayTimex);
+			json.put("translations", arrayTranslation);
+			return json.toString();
+		}
+		catch(Exception e) {
+			throw new WorkflowException(e.getMessage());
+		}
 	}
 
 	public static String toPlainText(WMDocument doc, String sSemFormat) throws Exception {

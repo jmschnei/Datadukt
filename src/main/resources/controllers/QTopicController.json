@@ -13,7 +13,7 @@
 		"format": "text"
 	},
 	"output": {
-		"format": "jsontopic"
+		"format": "application/json+topic"
 	},
 	"connection": {
 		"connection_type": "restapi",
