@@ -252,12 +252,18 @@ public class CWMEngine {
 		}
 		if(keepWaiting) {
 			boolean done=false;
+			int cnt = 0;
 			while(!done) {
 //				System.out.println(wfe.getStatus());
 				if(wfe.getStatus().equalsIgnoreCase(finishedStatus)) {
 					return wfe.getOutput();
 				}
 				else {
+					if(cnt==15) {
+						String s = "The workflow execution ["+workflowExecutionId+"] is still RUNNING after too much time for synchronous call.";
+						s = s + "Please use the outputCallback to get the results."; 
+						return s;
+					}
 					System.out.println("Workflowexecution ["+workflowExecutionId+"] is still not finished. Status is: "+wfe.getStatus());
 					Thread.sleep(5000);
 

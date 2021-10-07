@@ -348,7 +348,10 @@ public class WorkflowExecutionAPI{
 			Object result = engine.executeWorkflow(wmd,workflowExecutionId, priority);
 			if(result!=null){
 				if(synchronous) {
-		        	String resultQD = engine.getWorkflowExecutionOutput(workflowExecutionId,contentTypeHeader,true);		        	
+					System.out.println(result);
+					String sResult = (String) result;
+					String weId = sResult.substring(sResult.indexOf(' ')+1);
+		        	String resultQD = engine.getWorkflowExecutionOutput(weId,contentTypeHeader,true);		        	
 					// Convert output.
 		        	responseString = WMSerialization.toFormat(resultQD,oFormat.toString(),oSemanticFormat.toString());
 			        responseHeaders.add("Content-Type", oFormat.toString());
