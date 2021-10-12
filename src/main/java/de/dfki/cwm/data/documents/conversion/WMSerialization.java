@@ -131,18 +131,12 @@ public class WMSerialization {
 				if(ba instanceof LabelPositionAnnotation) {
 					LabelPositionAnnotation lpa = (LabelPositionAnnotation) ba;
 					String anchor = lpa.anchorOf;
-					List<Label> labels = lpa.getLabels();
-					for (Label l : labels) {
-//						if(l.annotationProperties.containsKey("itsrdf:taClassRef")) {
-//							String taClassRef = l.annotationProperties.get("qont:Topic");
-//							
-//							arrayTopic.put(l.annotationProperties.get("qont:Topic"));
-//						}
-//						if(l.annotationProperties.containsKey("qont:Translation")) {
-//							arrayTranslation.put(l.annotationProperties.get("qont:Translation"));
-//						}
-					}
-					arrayE.put(anchor);
+					JSONObject js = new JSONObject();
+					js.put("offset_ini", lpa.offset_ini);
+					js.put("offset_end", lpa.offset_end);
+					js.put("anchorOf", anchor);
+//					arrayE.put(anchor);
+					arrayE.put(js);
 				}
 				else if(ba instanceof LabelAnnotation) {
 					LabelAnnotation la = (LabelAnnotation) ba;
