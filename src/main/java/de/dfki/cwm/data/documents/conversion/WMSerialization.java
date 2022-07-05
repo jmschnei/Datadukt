@@ -144,7 +144,6 @@ public class WMSerialization {
 					js.put("offset_end", lpa.offset_end);
 					js.put("anchorOf", anchor);
 					js.put("entityType", type);
-//					arrayE.put(anchor);
 					arrayE.put(js);
 				}
 				else if(ba instanceof LabelAnnotation) {
