@@ -2,8 +2,8 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>de.dfki.qurator</groupId>
-	<artifactId>CurationWorkflowManager</artifactId>
+	<groupId>de.dfki.slt</groupId>
+	<artifactId>Datadukt</artifactId>
 	<version>0.1-SNAPSHOT</version>
 
 	<parent>
@@ -18,7 +18,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
-		<start-class>de.dfki.cwm.CWMApplication</start-class>
+		<start-class>de.dfki.slt.datadukt.CWMApplication</start-class>
 	</properties>
 
 	<packaging>jar</packaging>

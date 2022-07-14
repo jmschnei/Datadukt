@@ -1,6 +1,12 @@
-# CurationWorkflowManager
+# Datadukt
 
-The Workflow Manager orchestrates the different services of the Lynx platform. It's basic components are:
+This is an NLP tasks orchestration tool, i.e., a tool to manage pipelines or workflows of NLP processes.
+
+The name of this tool comes from the combination of 'Data' and 'dukt' (taken from "Aquae-dukt"). 
+
+Datadukt orchestrates different NLP services that can be hosted in different platforms, such as Qurator, Lynx or ELG. 
+
+It's basic components are:
 
 * **Tasks** Unitary pieces of work. One can think of them as specific methods of a service. They are atomic, in the sense that they don't require each other.
 * **Workflow Templates** Directed Acyclig Graphs (DAG) whose nodes are tasks and whose edges indicate the sequence of execution. They are abstract just as tasks, their instantiations we call Jobs. The output of a task execution is fed as input into the next (according to the DAG) task execution.
