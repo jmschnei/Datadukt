@@ -1,5 +1,14 @@
 package de.dfki.slt.datadukt.exceptions;
 
+/**
+ * @author julianmorenoschneider
+ * @project Datadukt
+ * @date 17.04.2020
+ * @date_modified 15.07.2022
+ * @company DFKI
+ * @description WorkflowException defining errors 
+ *
+ */
 public class WorkflowException extends Exception {
 
 	/**

@@ -37,6 +37,12 @@ public class FileStorage {
 	public void setup() {
 	}
 
+	/**
+	 * Method that generates a temporary file in the dictionary storage
+	 * @param is Inputstream of the content to be included in the temporary file
+	 * @param iFormat format of the content, and therefore the temporary 
+	 * @return a Identifier of the temporary file
+	 */
 	public String generateTemporaryFile(InputStream is,Format iFormat) {
 		String fileId = "";
 		String fileSuffix = "";
@@ -73,6 +79,12 @@ public class FileStorage {
 		}
 	}
 
+	/**
+	 * Method that generates a temporary file in the dictionary storage
+	 * @param file MultipartFile to be included in the temporary file
+	 * @param iFormat format of the content, and therefore the temporary 
+	 * @return a Identifier of the temporary file
+	 */
 	public String generateTemporaryFile(MultipartFile file,Format iFormat) {
 		String fileId = "";
 		String fileSuffix = "";
@@ -96,6 +108,12 @@ public class FileStorage {
 		}
 	}
 
+	/**
+	 * Method that generates a temporary file in the dictionary storage
+	 * @param s String content to be included in the temporary file
+	 * @param iFormat format of the content, and therefore the temporary 
+	 * @return a Identifier of the temporary file
+	 */
 	public String generateTemporaryFile(String s,Format iFormat) {
 		String fileId = "";
 		String fileSuffix = "";
