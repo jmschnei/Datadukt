@@ -1,3 +1,5 @@
+![DataDukt Logo](/Logo_Datadukt_1.png?raw=true "DataDukt Logo")
+
 # Datadukt # 
 
 This is an NLP tasks orchestration tool, i.e., a tool to manage pipelines or workflows of NLP processes.
@@ -5,8 +7,6 @@ This is an NLP tasks orchestration tool, i.e., a tool to manage pipelines or wor
 The name of this tool comes from the combination of 'Data' and 'dukt' (taken from "Aquae-dukt"). 
 
 Datadukt orchestrates different NLP services that can be hosted in different platforms, such as Qurator, Lynx or ELG. 
-
-![DataDukt Logo](/Logo_Datadukt_1.png?raw=true "DataDukt Logo")
 
 
 ## Structure of Datadukt ##
