@@ -6,7 +6,7 @@ The name of this tool comes from the combination of 'Data' and 'dukt' (taken fro
 
 Datadukt orchestrates different NLP services that can be hosted in different platforms, such as Qurator, Lynx or ELG. 
 
-
+![DataDukt Logo](/Logo_Datadukt_1.png?raw=true "DataDukt Logo")
 
 
 ## Structure of Datadukt ##
