@@ -1,6 +1,6 @@
 ![DataDukt Logo](/Logo_Datadukt_1.png?raw=true "DataDukt Logo")
 
-# Datadukt # 
+# Datadukt
 
 This is an NLP tasks orchestration tool, i.e., a tool to manage pipelines or workflows of NLP processes.
 
@@ -8,8 +8,9 @@ The name of this tool comes from the combination of 'Data' and 'dukt' (taken fro
 
 Datadukt orchestrates different NLP services that can be hosted in different platforms, such as Qurator, Lynx or ELG. 
 
+# Getting Started
 
-## Structure of Datadukt ##
+## Description of Datadukt Components ##
 
 It's basic components are:
 
@@ -21,9 +22,38 @@ It's basic components are:
 In general, a workflow execution is a DAG of task runs. An instance of a workflow template is a workflow execution, which consists of a series of sequential task executions on a given input. Each task execution sends a request to the corresponding controller. The controllers knows how many tasks can be simultaneously executed by a given service, and sends the executions accordingly. When an execution returns, the controller notifies the corresponding task executions, that must not be the same that contacted it.
 
 
-## Structure of the code
+## Installation
 
-### APIs
+In order to run Datadukt, there are some requirements that must be fullfilled: 
+
+* RabbitMQ Docker container has to be started with the following command
+
+```
+docker run -d --hostname localhost --name some-rabbit -p 5672:5672 rabbitmq:latest
+```
+
+First, you have to clone the code of the repository. Then, you must create the docker container using the following commands:
+
+```
+cd Datadukt
+docker build -t q_datadukt .
+```
+
+## Usage
+
+If everything works, the container has been generated without errors, and now you can run it with the following command:
+
+```
+docker run ...
+```
+
+Once the containers are up and running, we can process a document through a Dukt using the following command:
+
+```
+curl ...
+```
+
+## REST APIs
 
 * **DataduktWebcontroller**: controller including endpoints for the initialization and management of this instance of Datadukt
 * **TasksAPI**: Rest controller for creating, deleting and listing existing Tasks in this instance of Datadukt. Url: `https://<<server-url>>/datadukt/tasks`
@@ -100,17 +130,32 @@ In general, a workflow execution is a DAG of task runs. An instance of a workflo
             * controllerId: identifier of the controller to be deleted.
         * Output: HTTP 200
 
+# Community
 
+## Support
+If you need any support, please contact us at julian.moreno_schneider@dfki.de
 
+## Feedback
+To give feedback, ask a question or make a feature request, you can use the [Github Discussions](https://github.com/jmschnei/Datadukt/discussions).
 
+Bugs are logged using the github issue system. To report a bug, simply [open a new issue](https://github.com/jmschnei/Datadukt/issues/new/choose).
 
-## Run the Workflow Manager ##
+## Contributions 
 
-RabbitMQ Docker container has to be started with the following command
+All contributions are welcomed.
 
-docker run -d --hostname localhost --name some-rabbit -p 5672:5672 rabbitmq:latest
+Once you have it working, prepare a pull request against this repository.  
 
+## Authors and acknowledgment
+This tool has been partially funded by the Lynx Project, the QURATOR Project and the SPEAKER Project.
+
+## License
+This tool is developed under a MIT/Apache 2.0 License. LINK TO THE LINCENSE
+
+## Project status
+The project is further developed, but only with a small amount of resources.
 
 # TODO #
+* Generate a docker-compose file that allows the build of Datadukt and the compose up of RabbitMQ and Datadukt
 
-* Generate a docker-compose file that allows the build of Datadukt and the compose up of RabbitMQ and Datadukt.
+
